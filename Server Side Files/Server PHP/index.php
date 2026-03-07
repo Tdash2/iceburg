@@ -1,6 +1,6 @@
 <?php
 include "config.php";
-include "actvation/actvation.php";
+
 
 session_start();
 

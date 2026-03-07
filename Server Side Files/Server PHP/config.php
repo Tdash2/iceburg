@@ -2,7 +2,7 @@
 
 
 <?php
-include "actvation/checkKey.php";
+
 $servername = "localhost";
 $username = "iceburg";
 $password = "jfu5itjfitiejit5kfsfdgfdge8t43w";
