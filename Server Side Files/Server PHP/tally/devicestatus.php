@@ -21,12 +21,12 @@ if ($row = $result->fetch_assoc()) {
     $lastPing = strtotime($row['lastping']);
     $currentTime = time();
 
-    if (($currentTime - $lastPing) <= 21605) {
-        echo json_encode(true);
+    if (($currentTime - $lastPing) <= 5) {
+
+echo json_encode(true);
 
     } else {
-        echo json_encode(false);
-
+echo json_encode(false);
             }
 
 } else {

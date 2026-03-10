@@ -204,8 +204,9 @@ void handleWeb() {
     webClient.println("Content-Type:text/html");
     webClient.println("Connection: close\r\n");
 
-    webClient.println("Bridge Device<br><br>");
-    webClient.println("Local IP: " + Ethernet.localIP().toString() + "<br>");
+    webClient.println("Iceburg Tally Bridge<br>");
+    webClient.println("Bridging Server "+ serverIPA.toString()+" To Server "+  serverIPB.toString()+"<br>");
+    webClient.println("Bridging IP: " + Ethernet.localIP().toString() + "<br>");
     webClient.println("DHCP: " + String(useDHCP ? "Yes":"No") + "<br>");
 
     webClient.stop();

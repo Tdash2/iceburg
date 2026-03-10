@@ -14,11 +14,16 @@ if (isset($_GET['IP'])) {
 
     // Validate IP before storing
     if (filter_var($ip, FILTER_VALIDATE_IP)) {
-        $stmtIp = $conn->prepare("UPDATE devices SET ip = ?, lastping = NOW() WHERE id = ?");
-        $stmtIp->bind_param("si", $ip, $deviceId);
+
+        // Use PHP time instead of MySQL NOW()
+        $phpTime = date('Y-m-d H:i:s'); // current time according to PHP timezone
+
+        $stmtIp = $conn->prepare("UPDATE devices SET ip = ?, lastping = ? WHERE id = ?");
+        $stmtIp->bind_param("ssi", $ip, $phpTime, $deviceId);
         $stmtIp->execute();
+
         $changes['ip'] = $ip;
-       
+        $changes['lastping'] = $phpTime; // optional: return to client
     }
 }
 
