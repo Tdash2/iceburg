@@ -191,7 +191,7 @@ function buildFields(count, containerId, prefix, existing) {
         const div = document.createElement('div');
         div.className = 'form-group';
         div.innerHTML = `
-            <label>${prefix} ${i} UMD</label>
+            <label>${prefix} ${i} Name</label>
             <input type="text" class="form-control"
                    name="${prefix.toLowerCase()}_names[${i}]"
                    value="${value}">
