@@ -46,8 +46,8 @@ $query = "SELECT devices.*, deviceplugin.pluginName
 ?>
 
 <!-- Favicon -->
-<link rel="shortcut icon" href="/favacon.ico" type="image/x-icon">
-<link rel="icon" href="/favacon.ico" type="image/x-icon">
+<link rel="shortcut icon" href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/favacon.ico" type="image/x-icon">
+<link rel="icon" href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/favacon.ico" type="image/x-icon">
 
 
 <!-- Bootstrap CSS / JS -->
@@ -349,6 +349,24 @@ $(function () {
                   $name = $row['name'] ?? 'NULL';
                   ?>
                   <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/bmdSmartScope/?id=<?php echo  $id;?>"><?php echo  $name;?></a></li>
+                  
+                <?php }}} ?>
+          </ul> 
+        </li>
+        <?php endif; ?>
+        
+        <?php if(($userPerm >= 1)  && checkperm("8") == "true"): ?>
+        <li class="dropdown" id="first-link">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Cameras & Encoders <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <?php
+            if ($result = $conn->query($query)) {
+              while ($row = $result->fetch_assoc()) {
+                if ($row['pluginID'] == 8){
+                  $id = $row['id']; 
+                  $name = $row['name'] ?? 'NULL';
+                  ?>
+                  <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/zowietekpov/?id=<?php echo  $id;?>"><?php echo  $name;?></a></li>
                   
                 <?php }}} ?>
           </ul> 
