@@ -23,3 +23,4 @@ Below is a list of currently supported devices:
 + VMIX (Tally Only)
 + Symetrix DSP (logic Inputs Only)
 + Tally Iceberg IO Devices (GIP, GPO and TSL 3.0)
++ ZowieTek 4k POV Camera
