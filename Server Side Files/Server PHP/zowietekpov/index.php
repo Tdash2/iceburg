@@ -21,12 +21,12 @@ if (!validateUserSession($conn, 1, 8)) {
 
 $VIDEHub_HOST = "";
 
-$id= $_GET['id'];
+$hid= $_GET['id'];
 
 $stmt = $conn->prepare("SELECT ip,name FROM `devices` WHERE pluginID = 8 AND id=?");
-$stmt->bind_param("i", $id);
+$stmt->bind_param("i", $hid);
 $stmt->execute();
-$stmt->bind_result($x32,$devicename);
+$stmt->bind_result($camera_ip,$devicename);
 if (!$stmt->fetch()) {
     echo("No Device Found");
     exit;
@@ -34,12 +34,12 @@ if (!$stmt->fetch()) {
 $stmt->close();
 
 
-if ($x32 == null){
+if ($camera_ip == null){
 echo "No Ip Provided!";
 exit;
 }
 
-$camera_ip = $x32;
+
 
 function cam($ip, $option, $payload)
 {
@@ -338,7 +338,7 @@ function updateCamera() {
         sharpness: document.getElementById("sharpness").value
     };
 
-    fetch("<?= $_SERVER['PHP_SELF']."?id=".$id ?>", {
+    fetch("<?= $_SERVER['PHP_SELF']."?id=".$hid ?>", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(data)

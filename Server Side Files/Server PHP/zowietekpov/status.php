@@ -58,6 +58,7 @@ function cam($ip, $option, $payload)
 
     if ($res === false) {
         $res = "CURL ERROR: " . curl_error($ch);
+            header("HTTP/1.1 504 Gateway Timeout");
     }
 
     curl_close($ch);
