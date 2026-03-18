@@ -71,18 +71,26 @@ $query = "SELECT devices.*, deviceplugin.pluginName
 
 /* Logo */
 .header-logo {
-    display: block;
-    margin: 0 auto;
-    height: 30px;   /* adjust as needed */
-    width: auto;
-}
-#logo {
-    display: block;
-    text-align: center;
-    padding: 0;
-    line-height: normal; /* prevent inline-block cutting off text */
+  display: block;
+  margin: 0 auto;
+  height: 30px;
+  width: auto;
 }
 
+#logo {
+  display: block;
+  text-align: center;
+  padding: 0;
+  line-height: normal;
+}
+
+.logo-text {
+  font-size: 19px;
+  font-weight: bold;
+  color: white;
+  letter-spacing: 2px;
+  margin-top: 5px;
+}
 
 /* Main nav links */
 #link a {
@@ -90,13 +98,6 @@ $query = "SELECT devices.*, deviceplugin.pluginName
   margin-left: 15px;
   letter-spacing: 1.2px;
   text-decoration: none;
-}
-.logo-text {
-    font-size: 19px;
-    font-weight: bold;
-    color: white;
-    letter-spacing: 2px;
-    margin-top: 5px;
 }
 
 #link a:hover {
@@ -119,54 +120,85 @@ $query = "SELECT devices.*, deviceplugin.pluginName
   color: white !important;
 }
 
-/* Dropdown submenu arrow */
-.dropdown-submenu > a:after {
-
-  float: right;
-  margin-left: 5px;
-  font-size: 12px;
-}
-
-/* Submenu positioning */
+/* Submenu container */
 .dropdown-submenu {
   position: relative;
-      right: auto;
 }
 
+/* ? DEFAULT: open LEFT */
 .dropdown-submenu > .dropdown-menu {
   display: none;
   position: absolute;
-  left: auto;
-      right: 100%;
   top: 0;
+  left: auto;
+  right: 100%;
   margin-top: -1px;
   min-width: 180px;
   z-index: 1050;
 }
 
-/* Show submenu on hover/click */
+/* ? If not enough room on left ? open RIGHT */
+.dropdown-submenu.open-right > .dropdown-menu {
+  left: 100%;
+  right: auto;
+}
+
+/* Show submenu */
 .dropdown-submenu:hover > .dropdown-menu,
 .dropdown-submenu.open > .dropdown-menu {
   display: block;
 }
-.nav .open>a, .nav .open>a:focus, .nav .open>a:hover {
-    background-color: #373636;
-    }
+
+/* Active/open states */
+.nav .open > a,
+.nav .open > a:focus,
+.nav .open > a:hover {
+  background-color: #373636;
+}
 
 /* Mobile toggle button */
-#toogle-button .glyphicon {
+#toggle-button .glyphicon {
   color: white;
+}
+
+/* Optional smoothness */
+.dropdown-submenu > .dropdown-menu {
+  transition: all 0.15s ease-in-out;
 }
 </style>
 
 <script>
+function adjustSubmenuDirection(submenu) {
+    var menu = submenu.children('.dropdown-menu');
+
+    // Reset
+    submenu.removeClass('open-right');
+
+    // Temporarily show for measurement
+    menu.css({ visibility: 'hidden', display: 'block' });
+
+    var rect = menu[0].getBoundingClientRect();
+
+    // Restore visibility
+    menu.css({ visibility: '', display: '' });
+
+    // If it overflows LEFT ? switch to RIGHT
+    if (rect.left < 0) {
+        submenu.addClass('open-right');
+    }
+}
+
+
 $(function () {
     // Handle hover for submenu
-    $('.dropdown-submenu').hover(
-        function () {
-            // Show submenu on hover
-            $(this).children('.dropdown-menu').stop(true, true).slideDown(150);
-        },
+$('.dropdown-submenu').hover(
+    function () {
+        var submenu = $(this);
+
+        adjustSubmenuDirection(submenu); // ? ADD THIS
+
+        submenu.children('.dropdown-menu').stop(true, true).slideDown(150);
+    },
         function () {
             // Hide submenu when mouse leaves
             $(this).children('.dropdown-menu').stop(true, true).slideUp(150);
