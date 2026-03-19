@@ -9,7 +9,7 @@ if (!validateUserSession($conn, 1)) {
     showloggedout();
     exit;
 }
-if (!validateUserSession($conn, 1, 8)) {
+if (!validateUserSession($conn, 1, 9)) {
     showAccessDenied();
     exit;
 }
@@ -23,7 +23,7 @@ $VIDEHub_HOST = "";
 
 $hid= $_GET['id'];
 
-$stmt = $conn->prepare("SELECT ip,name FROM `devices` WHERE pluginID = 8 AND id=?");
+$stmt = $conn->prepare("SELECT ip,name FROM `devices` WHERE pluginID = 9 AND id=?");
 $stmt->bind_param("i", $hid);
 $stmt->execute();
 $stmt->bind_result($camera_ip,$devicename);

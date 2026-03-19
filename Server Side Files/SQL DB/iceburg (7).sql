@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 17, 2026 at 07:09 PM
+-- Generation Time: Mar 19, 2026 at 03:42 PM
 -- Server version: 11.8.3-MariaDB-1build1 from Ubuntu
 -- PHP Version: 8.4.11
 
@@ -69,6 +69,21 @@ CREATE TABLE `deviceplugin` (
   `pluginName` text NOT NULL,
   `pluginFolder` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `deviceplugin`
+--
+
+INSERT INTO `deviceplugin` (`id`, `pluginName`, `pluginFolder`) VALUES
+(1, 'X32/M32', '/x32/'),
+(2, 'BMD Videohub', '/blackmagicvideohub/'),
+(3, 'Cobalt 9905-MPX', '/9905-mpx/'),
+(4, 'Iceburg Tally 8x8', '/tally/'),
+(5, 'Blackmagic Router Panel', '/blackmagicrouterpanel/'),
+(6, 'BMD Smart View', '/bmdSmartScope/'),
+(7, 'AI Tally', '/aitally/'),
+(8, 'Blackmagic Router Panel 48 Button', '/48blackmagicrouterpanel/'),
+(9, 'ZowieTek POV Camera', '/zowietekpov/');
 
 -- --------------------------------------------------------
 
@@ -199,7 +214,7 @@ ALTER TABLE `auditlogs`
 -- AUTO_INCREMENT for table `deviceplugin`
 --
 ALTER TABLE `deviceplugin`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `devices`

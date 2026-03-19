@@ -387,14 +387,14 @@ $('.dropdown-submenu').hover(
         </li>
         <?php endif; ?>
         
-        <?php if(($userPerm >= 1)  && checkperm("8") == "true"): ?>
+        <?php if(($userPerm >= 1)  && checkperm("9") == "true"): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Cameras & Encoders <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <?php
             if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 8){
+                if ($row['pluginID'] == 9){
                   $id = $row['id']; 
                   $name = $row['name'] ?? 'NULL';
                   ?>
