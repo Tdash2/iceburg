@@ -84,7 +84,12 @@ table.table tbody tr.clickable-row:hover {
 <a class="buttonGrean" 
    href="https://<?php echo $_SERVER['HTTP_HOST'];?>/tally/upload8x8" 
    onclick="return confirm('You are being redirected to the HTTPS version of this site to allow the upload to work. You might need to allow the connection to an invalid certificate to continue');">
-   Upload Firmware 8x8
+   Upload Iceburg Tally Firmware 8x8 GPIO
+</a>
+<a class="buttonGrean" 
+   href="https://<?php echo $_SERVER['HTTP_HOST'];?>/tally/uploadross" 
+   onclick="return confirm('You are being redirected to the HTTPS version of this site to allow the upload to work. You might need to allow the connection to an invalid certificate to continue');">
+   Upload Iceburg Tally Firmware Ross Switcher
 </a>
 
 

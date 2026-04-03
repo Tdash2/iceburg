@@ -123,7 +123,7 @@ $result = $stmt->get_result();
 
 $userperms = $_SESSION['user_permissions'] ?? 0;
 
-if ($userperms > 3) {
+if ($userperms > 2) {
     echo '<br>';
     echo '<center>';
     echo '<a class="buttonGrean" href="editpanle.php?return=' . $deviceID . '">Add A New Virtual Panle</a>';
@@ -138,10 +138,10 @@ echo '<tr>';
 echo '<th>Name</th>';
 echo '<th>Device Type</th>';
 echo '<th>Device Status</th>';
-if ($userperms > 3) {
+if ($userperms > 2) {
     echo '<th>Edit Panle</th>';
 }
-if ($userperms > 3) {
+if ($userperms > 2) {
     echo '<th>Delete Panle</th>';
 }
 echo '</tr>';
@@ -168,12 +168,12 @@ if ($userperms < 4) {
     echo '<td>' . $type . '</td>';
     echo '<td>' . $devicename . '</td>';
 
-    if ($userperms > 3) {
+    if ($userperms > 2) {
         echo '<td>
                 <a href="editpanle.php?id=' . $id .  '&return=' . $deviceID . '" class="buttonGrean">Edit Panle</a>
               </td>';
     }
-    if ($userperms > 3) {
+    if ($userperms > 2) {
         echo '<td>
                 <a href="deletepanel.php?id=' . $id .  '&rtrid=' . $deviceID . '" class="buttonred">Delete Panel</a>
               </td>';

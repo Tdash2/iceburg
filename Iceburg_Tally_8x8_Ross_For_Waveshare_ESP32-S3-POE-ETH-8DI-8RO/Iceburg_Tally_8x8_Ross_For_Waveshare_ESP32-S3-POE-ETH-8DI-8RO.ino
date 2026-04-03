@@ -12,7 +12,6 @@ Adafruit_NeoPixel pixels(1, 38, NEO_GRB + NEO_KHZ800);
 #define SDA_PIN 42
 #define SCL_PIN 41
 #define TCA9554_ADDR 0x20
-
 #define REG_OUTPUT 0x01
 #define REG_CONFIG 0x03
 
@@ -33,9 +32,18 @@ EthernetClient rossClient;
 // ================= CONFIG =================
 Preferences prefs;
 
-char serverHost[64] = "192.168.127.20";
+char primaryHost[64]   = "192.168.127.20";
+char secondaryHost[64] = "192.168.127.21";
+
 int clientID = 1;
 const int serverPort = 80;
+
+bool useStatic = false;
+
+IPAddress localIP(192,168,1,200);
+IPAddress gateway(192,168,1,1);
+IPAddress subnet(255,255,255,0);
+IPAddress dns(8,8,8,8);
 
 // ================= TALLY =================
 #define MAX_INPUTS 128
@@ -51,7 +59,6 @@ String consoleBuffer = "";
 void logConsole(String msg)
 {
   Serial.println(msg);
-
   consoleBuffer += msg + "\n";
 
   if(consoleBuffer.length() > CONSOLE_SIZE)
@@ -78,10 +85,8 @@ void setRelay(uint8_t ch, bool on)
 {
   if (ch > 7) return;
 
-  if (on)
-    relayState |= (1 << ch);   // ON = 1
-  else
-    relayState &= ~(1 << ch);  // OFF = 0
+  if (on) relayState |= (1 << ch);
+  else relayState &= ~(1 << ch);
 
   writeTCA(REG_OUTPUT, relayState);
 }
@@ -91,8 +96,16 @@ void loadConfig()
 {
   prefs.begin("tally",true);
 
-  prefs.getString("host",serverHost,sizeof(serverHost));
+  prefs.getString("primary", primaryHost, sizeof(primaryHost));
+  prefs.getString("secondary", secondaryHost, sizeof(secondaryHost));
+
   clientID = prefs.getInt("id",1);
+  useStatic = prefs.getBool("static", false);
+
+  localIP.fromString(prefs.getString("ip","192.168.1.200"));
+  gateway.fromString(prefs.getString("gw","192.168.1.1"));
+  subnet.fromString(prefs.getString("sub","255.255.255.0"));
+  dns.fromString(prefs.getString("dns","8.8.8.8"));
 
   prefs.end();
 }
@@ -101,10 +114,39 @@ void saveConfig()
 {
   prefs.begin("tally",false);
 
-  prefs.putString("host",serverHost);
+  prefs.putString("primary", primaryHost);
+  prefs.putString("secondary", secondaryHost);
+
   prefs.putInt("id",clientID);
+  prefs.putBool("static", useStatic);
+
+  prefs.putString("ip", localIP.toString());
+  prefs.putString("gw", gateway.toString());
+  prefs.putString("sub", subnet.toString());
+  prefs.putString("dns", dns.toString());
 
   prefs.end();
+}
+
+// ================= SERVER FAILOVER =================
+bool connectToServer(EthernetClient &c)
+{
+  if(c.connect(primaryHost, serverPort))
+  {
+    logConsole("Connected PRIMARY");
+    return true;
+  }
+
+  logConsole("Primary failed, trying secondary");
+
+  if(c.connect(secondaryHost, serverPort))
+  {
+    logConsole("Connected SECONDARY");
+    return true;
+  }
+
+  logConsole("Both servers FAILED");
+  return false;
 }
 
 // ================= WEB SERVER =================
@@ -116,8 +158,7 @@ void handleWeb()
   String req = c.readStringUntil('\r');
   c.read();
 
-  // ---------- Console raw ----------
-  if(req.startsWith("GET /console"))
+    if(req.startsWith("GET /console"))
   {
     c.println("HTTP/1.1 200 OK");
     c.println("Content-Type:text/plain");
@@ -129,8 +170,7 @@ void handleWeb()
     return;
   }
 
-  // ---------- Debug page ----------
-  if(req.startsWith("GET /debug"))
+if(req.startsWith("GET /debug"))
   {
     c.println("HTTP/1.1 200 OK");
     c.println("Content-Type:text/html\n");
@@ -145,7 +185,7 @@ void handleWeb()
     c.println("let t=await r.text();");
     c.println("document.getElementById('log').textContent=t;");
     c.println("}");
-    c.println("setInterval(update,1000);");
+    c.println("setInterval(update,500);");
     c.println("update();");
     c.println("</script>");
 
@@ -155,57 +195,158 @@ void handleWeb()
     return;
   }
 
-  // ---------- Status ----------
-  if(req.startsWith("GET /status"))
-  {
-    c.println("HTTP/1.1 200 OK\nContent-Type:text/html\n\n");
+  // ===== SAVE =====
+if (req.startsWith("POST /save")) {
+  // Skip headers
+  while (c.available() && c.readStringUntil('\n') != "\r");
 
-    c.println("Ross Tally System<br>");
-    c.println("IP: "+String(Ethernet.localIP()));
-    c.println("<br>Client ID: "+String(clientID));
+  String body = c.readString();
 
-    c.stop();
-    return;
+  auto getVal = [&](const char* key) -> String {
+    int p = body.indexOf(String(key) + "=");
+    if (p < 0) return "";
+    int e = body.indexOf('&', p);
+    return body.substring(p + strlen(key) + 1,
+                          e < 0 ? body.length() : e);
+  };
+
+  String v;
+
+  v = getVal("primary");
+  if (v.length()) {
+    v.replace("+", " ");
+    v.toCharArray(primaryHost, sizeof(primaryHost));
   }
 
-  // ---------- Config page ----------
+  v = getVal("secondary");
+  if (v.length()) {
+    v.replace("+", " ");
+    v.toCharArray(secondaryHost, sizeof(secondaryHost));
+  }
+
+  v = getVal("id");
+  if (v.length()) clientID = v.toInt();
+
+  // checkbox → exists or not
+  useStatic = getVal("static").length() > 0;
+
+  v = getVal("ip");  if (v.length()) localIP.fromString(v);
+  v = getVal("gw");  if (v.length()) gateway.fromString(v);
+  v = getVal("sub"); if (v.length()) subnet.fromString(v);
+  v = getVal("dns"); if (v.length()) dns.fromString(v);
+
+  saveConfig();
+
+  delay(100);
+
+String newIP = !useStatic ?
+      "http://" + Ethernet.localIP().toString() :
+      "http://" + localIP.toString();
+
+    c.println("HTTP/1.1 200 OK");
+    c.println("Content-Type: text/html");
+    c.println("Connection: close\r\n");
+    c.println("<html><body>");
+    c.println("<h3>Settings saved. Restarting device...</h3>");
+    c.println("<meta http-equiv='refresh' content='5; url="
+                      + newIP + ":80'>");
+    c.println("</body></html>");
+
+    c.stop();
+    ESP.restart();
+  return;
+}
+
+  // ===== PAGE =====
   c.println("HTTP/1.1 200 OK\nContent-Type:text/html\n\n");
 
   c.println("<html><body style='background:#222;color:#fff'>");
+  c.println("<head>");
+  c.println("<title>Configure Iceburg Tally Ross Switcher</title>");
+  c.println("<link rel='stylesheet' href='http://" +
+                    String(primaryHost) +
+                    "/depends/bootstrap.min.css'>");
+  c.println("<script src='http://" +
+                    String(primaryHost) +
+                    "/depends/jquery.min.js'></script>");
+  c.println("<script src='http://" +
+                    String(primaryHost) +
+                    "/depends/bootstrap.min.js'></script>");
+  c.println("<style>body { background-color: #232323; color: #FFF; }</style>");
+  c.println("</head>");
 
-  c.println("<h2>Ross Tally Config</h2>");
+
+  c.println("<div class='container'>");
+  c.println("<div class='py-5 text-center'>");
+  c.println("<h2>Tally Config</h2>");
+  c.println("<p>Connect a Ross switcher tally output to TCP port 1000. The input to this unit are from the Ross Switcher. Outputs are from ICEBURG Tally and connected to the Realys on the device.</p>");
+
+  c.println("</div>");
 
   c.println("<form method='POST' action='/save'>");
 
-  c.println("Server IP: <input name='host' value='"+String(serverHost)+"'><br>");
-  c.println("Client ID: <input name='id' value='"+String(clientID)+"'><br>");
+  c.println("<div class='form-group'>");
+  c.println("<label>Primary Server</label>");
+  c.println("<input name='primary' class='form-control' value='"+String(primaryHost)+"'>");
+  c.println("</div>");
 
-  c.println("<button>Save</button></form>");
 
-  c.println("<br><a href='/debug'>Debug Console</a>");
+  c.println("<div class='form-group'>");
+  c.println("<label>Secondary Server</label>");
+  c.println("<input name='secondary' class='form-control' value='"+String(secondaryHost)+"'>");
+  c.println("</div>");
 
-  c.println("</body></html>");
+  c.println("<div class='form-group'>");
+  c.println("<label>Client ID</label>");
+  c.println("Client ID: <input name='id' class='form-control' value='"+String(clientID)+"'>");
+  c.println("</div>");
+
+  c.println("<br>");
+
+   c.println("<div class='form-group'>");
+  c.println("<label>Use Static IP</label>"); 
+  c.println("<input type='checkbox' class='form-control' style=\"width: auto;\" name='static' "+String(useStatic?"checked":"")+">");
+  c.println("</div>");
+
+  c.println("<div class='form-group'>");
+  c.println("<label>Static IP</label>");
+  c.println("<input name='ip' class='form-control' value='"+localIP.toString()+"'>");
+c.println("</div>");
+
+  c.println("<div class='form-group'>");
+  c.println("<label>Default Gateway</label>");
+  c.println("<input name='gw' class='form-control' value='"+gateway.toString()+"'>");
+c.println("</div>");
+
+  c.println("<div class='form-group'>");
+  c.println("<label>Subnet Mask</label>");
+  c.println("<input name='sub' class='form-control' value='"+subnet.toString()+"'>");
+c.println("</div>");
+
+  c.println("<div class='form-group'>");
+  c.println("<label>DNS Server</label>");
+  c.println("<input name='dns' class='form-control' value='"+dns.toString()+"'>");
+c.println("</div>");
+
+  c.println("<button type='submit' class='btn btn-primary'>Save</button>");
+  c.println(" <a class='btn btn-primary' href='http://" +String(primaryHost) +"'>Iceburg Server Login</a>");
+  c.println(" <a class='btn btn-primary' href='/debug'>Debug Tally Data</a>");
+  c.println("</form></div></body></html>");
 
   c.stop();
 }
 
-// ================= ROSS TALLY =================
+// ================= ROSS =================
 void readRoss()
 {
   if(!rossClient || !rossClient.connected())
   {
+    setPixel(0,25,0);
     rossClient = rossServer.available();
+    if(!rossClient) return;
 
-    if(rossClient)
-    {
-      logConsole("Ross connected");
-      setPixel(25,0,0);
-    }
-    else
-    {
-      setPixel(0,25,0);
-      return;
-    }
+    logConsole("Ross connected");
+    
   }
 
   while(rossClient.available() >= TSL_PACKET)
@@ -214,11 +355,8 @@ void readRoss()
     uint8_t ctrl   = rossClient.read();
 
     char text[17];
-
-    for(int i=0;i<16;i++)
-      text[i] = rossClient.read();
-
-    text[16] = 0;
+    for(int i=0;i<16;i++) text[i]=rossClient.read();
+    text[16]=0;
 
     int addr = header - 0x80;
     bool program = ctrl & 0x02;
@@ -226,56 +364,46 @@ void readRoss()
     if(addr>=0 && addr<MAX_INPUTS)
     {
       lastTally[addr] = program;
-
-      if(addr+1 > inputCount)
-        inputCount = addr+1;
+      if(addr+1 > inputCount) inputCount = addr+1;
     }
-
     logConsole("Input "+String(addr)+" UMD:"+String(text)+" PGM Tally Status: "+String(program));
-
-   
+    setPixel(25,0,0);
   }
+   
 }
 
-// ================= SEND TALLY =================
+// ================= SEND =================
 void sendToServer()
 {
   EthernetClient c;
 
-  if(!c.connect(serverHost,serverPort))
+  if(!connectToServer(c))
   {
-    logConsole("Server connection FAILED");
     setPixel(0,25,0);
     return;
   }
 
   String url="/tally/settallystatus.php?id="+String(clientID);
 
-for(int i = 0; i < 25 && i < inputCount; i++)
-{
-  url += "&ch" + String(i) + "=" + String(lastTally[i] ? "1" : "0");
-}
-
-  
+  for(int i=0;i<25 && i<inputCount;i++)
+    url += "&ch"+String(i)+"="+String(lastTally[i]?"1":"0");
 
   c.print("GET "+url+" HTTP/1.0\r\n\r\n");
 
   while(c.connected())
-    while(c.available())
-      c.read();
+    while(c.available()) c.read();
 
   c.stop();
   setPixel(25,0,0);
 }
 
-// ================= POLL OUTPUTS =================
+// ================= POLL =================
 void pollServer()
 {
   EthernetClient c;
 
-  if(!c.connect(serverHost,serverPort))
+  if(!connectToServer(c))
   {
-    logConsole("Output poll FAILED");
     setPixel(0,25,0);
     return;
   }
@@ -303,23 +431,27 @@ void pollServer()
     setRelay(i, outputs[String(i+1)] | false);
 
   c.stop();
-  setPixel(25,0,0);
 }
 
 // ================= SETUP =================
 void setup()
 {
-  Serial.begin(115200);
+Serial.begin(115200);
+unsigned long start = millis();
+while(!Serial && millis() - start < 3000) {
+  delay(10);
+}
+Serial.println("Booting...");
 
   pixels.begin();
   pixels.show();
+  loadConfig();
 
   Wire.begin(SDA_PIN,SCL_PIN);
-
   writeTCA(REG_CONFIG,0x00);
   writeTCA(REG_OUTPUT,relayState);
 
-  loadConfig();
+  
 
   uint64_t chip = ESP.getEfuseMac();
 
@@ -331,23 +463,31 @@ void setup()
   mac[5]=chip>>8;
 
   SPI.begin(SPI_SCK,SPI_MISO,SPI_MOSI);
-
   Ethernet.init(W5500_CS);
 
-  if(Ethernet.begin(mac)==0)
+  if(useStatic)
   {
-    logConsole("DHCP failed");
-    while(true);
+    Ethernet.begin(mac, localIP, dns, gateway, subnet);
+    logConsole("Static IP mode");
+  }
+  else
+  {
+if(Ethernet.begin(mac)==0)
+{
+  Serial.println("DHCP failed");  // direct print
+  delay(1000);                    // give time to flush
+  while(true);
+}
   }
 
   logConsole("IP: "+Ethernet.localIP().toString());
-
+  Serial.print("IP: "+Ethernet.localIP().toString());
+  delay(1000);
   webServer.begin();
   rossServer.begin();
 
-  logConsole("Ross Tally Server ready");
-
   setPixel(0,0,25);
+
 }
 
 // ================= LOOP =================
@@ -356,14 +496,13 @@ unsigned long lastPoll=0;
 void loop()
 {
   handleWeb();
-
   readRoss();
 
   if(millis()-lastPoll > 100)
   {
     lastPoll = millis();
-
     sendToServer();
     pollServer();
   }
+
 }

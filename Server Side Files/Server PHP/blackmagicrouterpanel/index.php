@@ -7,7 +7,7 @@ if (!validateUserSession($conn, 1, 5)) { showAccessDenied(); exit; }
 
 
 
-$videohubid="30";
+$videohubid="";
 $id = $_GET['id'] ?? 0;
 $stmt = $conn->prepare("SELECT ip, name FROM `devices` WHERE pluginID = 5 AND id=?");
 $stmt->bind_param("i", $id);

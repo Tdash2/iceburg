@@ -3,11 +3,6 @@ include __DIR__ . "/../../config.php";
 
 session_start();
 
-$videohuballowedd = $_SESSION['tally'];
-if ($videohuballowedd == "false") {
-    showPluginExpired("Sorry, The Tally plugin is not licensed.");
-    exit;
-}
 
 if (!validateUserSession($conn, 1)) { showloggedout(); exit; }
 if (!validateUserSession($conn, 1, 4)) { showAccessDenied(); exit; }
@@ -32,6 +27,8 @@ include __DIR__ . "/../../header.php";
   <div id="container">
     <h1>Install Iceburg Tally 8x8</h1>
     <h3>Click the connect button to program the client.</h3>
+    <p>This tally client will take in 8 tallys from the device GPI pins and send them to ICEBURG tally. It will also pull tally status from ICEBURG and output to the 8 relay channels.
+    <br><br>
     <esp-web-install-button id="flashButton"></esp-web-install-button>
 
   </div>

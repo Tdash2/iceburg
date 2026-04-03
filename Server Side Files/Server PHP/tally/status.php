@@ -32,7 +32,7 @@ if ($x32 == null){
     exit;
 }
 
-$url = "http://".$x32.":80/status";
+$url = "http://".$x32."/status";
 
 /* ---- 1 second timeout added here ---- */
 $context = stream_context_create([

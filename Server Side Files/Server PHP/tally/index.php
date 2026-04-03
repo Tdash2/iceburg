@@ -81,13 +81,23 @@ body{
 
 h2{padding:8px;margin:0;}
 
+.grid2-container {
+    width: 95%;
+
+    background: #232323;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Make the scrollable container the sticky reference */
 .grid-container {
-    width: 100%;
+    width: 95%;
     height: 85%; /* full viewport minus header height */
     overflow-x: auto;  /* horizontal scroll */
     overflow-y: auto;  /* vertical scroll inside the grid only */
     background: #232323;
+     max-width: fit-content;
+
 }
 .rowheader.low.corner {
     position: sticky;
@@ -265,14 +275,14 @@ position: relative; /* keep for absolute positioning of corner */
 <body>
 
 
-<div class="container">
+<div class="grid2-container">
 <h2>Tally Routing</h2>
 <div class="grid-container">
   <div class="grid-wrapper">
     <div id="grid"></div>
 
   </div>
-</div>
+  </div>
 
 <script>
 var INPUT_GROUPS = <?php echo json_encode($inputGroups); ?>;

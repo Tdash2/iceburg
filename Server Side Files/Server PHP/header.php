@@ -411,8 +411,11 @@ $('.dropdown-submenu').hover(
           
           
           <ul class="dropdown-menu">
+          
             <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/tally/">Tally Grid</a></li>
+            <?php if($userPerm >2): ?>
             <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/tally/device.php">Setup Devices</a></li>
+             <?php endif; ?>
             <?php
             if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {
