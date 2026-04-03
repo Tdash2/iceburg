@@ -558,11 +558,11 @@ void setup() {
    Serial.println(Ethernet.localIP());
   setPixelGreen();
 
-rs485EnableRX();
+
 
 RS485Serial.begin(38400, SERIAL_8E1, RS485_RX, RS485_TX);
 for(int i=0;i<32;i++){
-  strcpy(umdLabels[i]," ");
+  strcpy(umdLabels[i],"No Connection");
   tslTallies[i] = false;
 }
 }
