@@ -364,6 +364,21 @@ $('.dropdown-submenu').hover(
                     </ul>
                   </li>
                 <?php }}} ?>
+                <?php
+             if ($result = $conn->query($query)) {
+              while ($row = $result->fetch_assoc()) {
+                if ($row['pluginID'] == 10){
+                  $id = $row['id']; 
+                  $name = $row['name'] ?? 'NULL';
+                  ?>
+                  <li class="dropdown-submenu">
+                    <a href="#"><i class="fa-solid fa-caret-left"></i></i> <?php echo $name;?></a>
+                    <ul class="dropdown-menu">
+                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/ajafs2/?id=<?php echo $id;?>"><?php echo $name;?> Video Settings</a></li>
+                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/ajafs2/audio.php?id=<?php echo $id;?>"><?php echo $name;?> Audio Settings</a></li>
+                    </ul>
+                  </li>
+                <?php }}} ?>   
           </ul> 
         </li>
         <?php endif; ?>
@@ -411,11 +426,8 @@ $('.dropdown-submenu').hover(
           
           
           <ul class="dropdown-menu">
-          
             <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/tally/">Tally Grid</a></li>
-            <?php if($userPerm >2): ?>
             <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/tally/device.php">Setup Devices</a></li>
-             <?php endif; ?>
             <?php
             if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {

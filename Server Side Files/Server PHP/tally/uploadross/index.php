@@ -30,7 +30,7 @@ include __DIR__ . "/../../header.php";
 </head>
 <body>
   <div id="container">
-    <h1>Install Iceburg Tally 8x8</h1>
+    <h1>Install Iceburg Tally Ross Switcher</h1>
     <h3>Click the connect button to program the client.</h3>
     <p>This tally client will take in the 25 input tallys from a Ross switcher and send them to ICEBURG tally. It will also pull tally status from ICEBURG and output to the 8 relay channels.
     <br><br>
@@ -51,7 +51,7 @@ include __DIR__ . "/../../header.php";
 
     // Generate a manifest pointing to the firmware on your server
     const manifest = {
-      name: "Iceburg Tally Client 8x8",
+      name: "Iceburg Tally Client Ross Switcher",
       version: "1.0.0",
       builds: [
         {

@@ -32,8 +32,8 @@ EthernetClient rossClient;
 // ================= CONFIG =================
 Preferences prefs;
 
-char primaryHost[64]   = "192.168.127.20";
-char secondaryHost[64] = "192.168.127.21";
+char primaryHost[64]   = "iceburg";
+char secondaryHost[64] = "iceburg-backup";
 
 int clientID = 1;
 const int serverPort = 80;
@@ -383,7 +383,7 @@ void sendToServer()
     return;
   }
 
-  String url="/tally/settallystatus.php?id="+String(clientID);
+  String url="/tally/settallystatus.php?id="+String(clientID)+"&IP="+Ethernet.localIP().toString();
 
   for(int i=0;i<25 && i<inputCount;i++)
     url += "&ch"+String(i)+"="+String(lastTally[i]?"1":"0");
@@ -408,7 +408,7 @@ void pollServer()
     return;
   }
 
-  c.print("GET /tally/gettallystatus.php?id="+String(clientID)+" HTTP/1.0\r\n\r\n");
+  c.print("GET /tally/gettallystatus.php?id="+String(clientID)+"&IP="+Ethernet.localIP().toString()+" HTTP/1.0\r\n\r\n");
 
   while(c.connected())
   {
