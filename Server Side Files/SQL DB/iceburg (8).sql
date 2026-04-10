@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.2deb2
+-- version 5.2.1deb3
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 19, 2026 at 03:42 PM
--- Server version: 11.8.3-MariaDB-1build1 from Ubuntu
--- PHP Version: 8.4.11
+-- Generation Time: Apr 10, 2026 at 06:57 PM
+-- Server version: 10.11.14-MariaDB-0ubuntu0.24.04.1
+-- PHP Version: 8.3.6
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -40,10 +40,9 @@ CREATE TABLE `Admin Users` (
 --
 
 INSERT INTO `Admin Users` (`UserEmail`, `UserPassword`, `UserPermissions`, `id`, `allowedPlugins`) VALUES
-('admin', '$2y$10$mKl8gH8YRZLxFYDABAOdJ.v5UO0ZIi9PY2gGkF.9DPoAif5tQCyva', '5', 16, '[\"2\",\"1\"]'),
-('A1', '$2y$12$UG91OfyblSogrAGe3i5WLOX4l3TWrLd9cWlp4E6cKo4ScvHjpa09a', '2', 17, '[\"3\",\"1\"]'),
-('eic', '$2y$10$gcJ55oFuZc5xBj/tSvzk5uPnPfw8DSDEOVJQb1Vrip1GdqW/14AdW', '4', 21, '[]'),
-('video', '$2y$12$qWpbjU7pQrbttk9IEqulYegCM3Pg9wgG/1Cr6XBRT3jMUf.vfvfYO', '2', 23, '[\"2\",\"3\",\"8\"]');
+('admin', '$2y$10$aYyi/ztJI41GZD7s90rYLOenHCXJLW3CIWuar4LHa3mPJDASQMQLK', '5', 16, '[\"2\",\"1\"]'),
+('tally', '$2y$10$u.QMshFUp96m0AyapND53exm86BP0KVVpWzsrmqzE5nsFuHMuwUlq', '2', 24, '[\"7\",\"4\"]'),
+('eic', '$2y$10$RUooxujpU.BqhtCJLD843uWcJEyfh37V0S77oQjZJj5/87nh6EZtK', '3', 27, '[\"7\",\"5\",\"8\",\"6\",\"2\",\"4\"]');
 
 -- --------------------------------------------------------
 
@@ -79,11 +78,12 @@ INSERT INTO `deviceplugin` (`id`, `pluginName`, `pluginFolder`) VALUES
 (2, 'BMD Videohub', '/blackmagicvideohub/'),
 (3, 'Cobalt 9905-MPX', '/9905-mpx/'),
 (4, 'Iceburg Tally 8x8', '/tally/'),
-(5, 'Blackmagic Router Panel', '/blackmagicrouterpanel/'),
+(5, 'Blackmagic Router Panel 40 Button', '/blackmagicrouterpanel/'),
 (6, 'BMD Smart View', '/bmdSmartScope/'),
 (7, 'AI Tally', '/aitally/'),
 (8, 'Blackmagic Router Panel 48 Button', '/48blackmagicrouterpanel/'),
-(9, 'ZowieTek POV Camera', '/zowietekpov/');
+(9, 'ZowieTek POV Camera', '/zowietekpov/'),
+(10, 'AJA FS-2', '/ajafs2/');
 
 -- --------------------------------------------------------
 
@@ -202,7 +202,7 @@ ALTER TABLE `tally_mappings`
 -- AUTO_INCREMENT for table `Admin Users`
 --
 ALTER TABLE `Admin Users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `auditlogs`
@@ -214,7 +214,7 @@ ALTER TABLE `auditlogs`
 -- AUTO_INCREMENT for table `deviceplugin`
 --
 ALTER TABLE `deviceplugin`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `devices`
