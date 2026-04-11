@@ -195,6 +195,23 @@ if(req.startsWith("GET /debug"))
     return;
   }
 
+if(req.startsWith("GET /status"))
+  {
+    c.println("HTTP/1.1 200 OK");
+    c.println("Content-Type:text/html\n");
+
+
+    c.println("Device Type: Iceburg Tally Ross Switcher");
+    c.println("<BR>");
+    c.println("Tally ID: "+String(clientID));
+    c.println("<BR>");
+    c.println("Device IP: "+Ethernet.localIP().toString());
+
+
+    c.stop();
+    return;
+  }
+
   // ===== SAVE =====
 if (req.startsWith("POST /save")) {
   // Skip headers

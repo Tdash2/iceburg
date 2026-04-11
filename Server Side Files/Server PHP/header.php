@@ -345,7 +345,7 @@ $('.dropdown-submenu').hover(
         <?php endif; ?>
 
         <!-- Audio Menu -->
-        <?php if(($userPerm >= 1)  && checkperm("3") == "true"): ?>
+        <?php if(($userPerm >= 1)  && checkperm("3") == "true" || checkperm("10") == "true" ): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Framesyncs <span class="caret"></span></a>
           <ul class="dropdown-menu">
