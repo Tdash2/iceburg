@@ -41,12 +41,21 @@ function fs2_get_value($param) {
 /* ================= API ================= */
 
 
-    echo "Input 1 Format: ". fs2_get_value("eParamID_Vid1DetectedInputFormat");
-    echo " Output 1 Format: ". fs2_get_value("eParamID_Vid1ActualOutputFormat");
     
-    echo "<BR>";
-    echo "Input 2 Format: ".fs2_get_value("eParamID_Vid2DetectedInputFormat");
-    echo " Output 2 Format: ". fs2_get_value("eParamID_Vid2ActualOutputFormat");
+if (fs2_get_value("eParamID_Vid1DetectedInputFormat") != null) {
+    echo "Input 1 Format: " . fs2_get_value("eParamID_Vid1DetectedInputFormat");
+    echo ", Output 1 Format: " . fs2_get_value("eParamID_Vid1ActualOutputFormat");
+    
+    echo "<br>";
+    
+    echo "Input 2 Format: " . fs2_get_value("eParamID_Vid2DetectedInputFormat");
+    echo ", Output 2 Format: " . fs2_get_value("eParamID_Vid2ActualOutputFormat");
+    
+} else {
+    header("HTTP/1.1 504 Gateway Timeout");
+    exit;
+}
+
 
 
 ?>

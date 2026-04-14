@@ -6,7 +6,7 @@ if (!validateUserSession($conn, 1)) {
     showloggedout();
     exit;
 }
-if (!validateUserSession($conn, 5)) { // 2 = required permission level
+if (!validateUserSession($conn, 3)) { // 2 = required permission level
     showAccessDenied();
     exit;
 }

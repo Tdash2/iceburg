@@ -151,7 +151,7 @@ echo '<tbody>';
 while ($row = $result->fetch_assoc()) {
     $allowedUsers = json_decode($row['allowedusers'], true); // decode JSON to array
 
-if ($userperms < 4) {
+if ($userperms < 3) {
     // Only show row if current user ID is in allowedUsers
     if (!in_array($currentUserID, $allowedUsers)) {
         continue; // skip this row

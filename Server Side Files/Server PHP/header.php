@@ -43,6 +43,58 @@ $query = "SELECT devices.*, deviceplugin.pluginName
           LEFT JOIN deviceplugin ON deviceplugin.id = devices.pluginID";
            $currentUrl = $_SERVER['REQUEST_URI'];
     $redirectUrl = "index.php?redirect=" . urlencode($currentUrl);
+    
+    
+    
+    
+    
+    
+// Prepare query
+$stmt = $conn->prepare("
+    SELECT id, panleName, deviceID, allowedusers
+    FROM routerpanle
+");
+
+$stmt->execute();
+$resultPanels = $stmt->get_result();
+
+// Always initialize FIRST (prevents crashes)
+$allPanels = [];
+$panelsByDevice = [];
+
+$currentUserID = $_SESSION['Userid'] ?? null;
+$userperms = $_SESSION['user_permissions'] ?? 0;
+
+// Only process if query actually returned rows
+if ($resultPanels && $resultPanels->num_rows > 0) {
+
+    while ($row = $resultPanels->fetch_assoc()) {
+
+        // Safely decode JSON (prevents null errors)
+        $allowedUsers = json_decode($row['allowedusers'] ?? '[]', true);
+
+        if (!is_array($allowedUsers)) {
+            $allowedUsers = [];
+        }
+
+        // Permission check
+        if ($userperms < 3 && !empty($allowedUsers)) {
+            if (!in_array($currentUserID, $allowedUsers)) {
+                continue;
+            }
+        }
+
+        // Save data safely
+        $allPanels[] = $row;
+        $panelsByDevice[$row['deviceID']][] = $row;
+    }
+}
+
+// IMPORTANT: always close
+$stmt->close();
+
+
+ 
 ?>
 
 <!-- Favicon -->
@@ -254,69 +306,136 @@ $('.dropdown-submenu').hover(
     <div class="collapse navbar-collapse" id="myNavbar">
       <ul id="link" class="nav navbar-nav navbar-right">
 
-        <!-- Video Menu -->
-        <?php if(($userPerm >= 1) && (checkperm("2") == "true" || checkperm("5") == "true" ) ): ?>
-        <li class="dropdown" id="first-link">
-          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Router <span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <?php
-            if($userPerm >= 1  && checkperm("2") == "true" ){
-            if ($result = $conn->query($query)) {
-              while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 2){
-                  $id = $row['id']; 
-                  $name = $row['name'] ?? 'NULL';
-                  ?>
-                  <li class="dropdown-submenu">
-                    <a href="#"><i class="fa-solid fa-caret-left"></i></i> <?php echo $name;?></a>
-                    <ul class="dropdown-menu">
-                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/blackmagicvideohub/bmdrouterroutes.php?id=<?php echo $id;?>"><?php echo $name;?> Routes</a></li>
-                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/blackmagicvideohub/bmdrouterinputnames.php?id=<?php echo $id;?>"><?php echo $name;?> Input Names</a></li>
-                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/blackmagicvideohub/bmdrouteroutputnames.php?id=<?php echo $id;?>"><?php echo $name;?> Output Names</a></li>
-                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/blackmagicvideohub/managevirtialpanles.php?id=<?php echo $id;?>"><?php echo $name;?> Virtual Router Panel</a></li>
-                    </ul>
-                  </li>
-                <?php }}}} ?>
-                <?php
-                if($userPerm >= 1  && checkperm("5") == "true" ){
-            if ($result = $conn->query($query)) {
-              while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 5){
-                  $id = $row['id']; 
-                  $name = $row['name'] ?? 'NULL';
-                  ?>
-                  <li class="dropdown-submenu">
-                    
-                    
-                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/blackmagicrouterpanel/index.php?id=<?php echo $id;?>"><?php echo $name;?> Button Mapping</a></li>
+ <!-- Router Menu -->
+<?php
+$hasVirtualPanels = !empty($allPanels);
+$canAccessRouterPlugins = ($userPerm >= 1 && (
+    checkperm("2") == "true" ||
+    checkperm("5") == "true" ||
+    checkperm("8") == "true"
+));
 
-                    
-                  </li>
-                <?php }}}} ?>
-                
-                               <?php
-                if($userPerm >= 1  && checkperm("8") == "true" ){
-            if ($result = $conn->query($query)) {
-              while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 8){
-                  $id = $row['id']; 
-                  $name = $row['name'] ?? 'NULL';
-                  ?>
-                  <li class="dropdown-submenu">
-                    
-                    
-                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/48blackmagicrouterpanel/index.php?id=<?php echo $id;?>"><?php echo $name;?> Button Mapping</a></li>
+$result = $conn->query($query);
+?>
 
-                    
-                  </li>
-                <?php }}}} ?>
-                
-                
-          </ul> 
-        </li>
+<?php if ($userPerm >= 1 && ($hasVirtualPanels || $canAccessRouterPlugins)): ?>
+<li class="dropdown" id="first-link">
+
+  <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+    Router <span class="caret"></span>
+  </a>
+
+  <ul class="dropdown-menu">
+
+    <!-- ===================== -->
+    <!-- VIRTUAL PANELS (ALWAYS IF ASSIGNED) -->
+    <!-- ===================== -->
+    <?php if ($hasVirtualPanels): ?>
+      <li class="dropdown-submenu">
+        <a href="#">
+          <i class="fa-solid fa-caret-left"></i> Virtual Panels
+        </a>
+
+        <ul class="dropdown-menu">
+          <?php foreach ($allPanels as $panel): ?>
+            <li>
+              <a href="http://<?php echo $_SERVER['HTTP_HOST']; ?>/blackmagicvideohub/virtialrouterpanle.php?id=<?php echo $panel['id']; ?>">
+                <?php echo htmlspecialchars($panel['panleName']); ?>
+              </a>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      </li>
+    <?php endif; ?>
+
+
+    <!-- ===================== -->
+    <!-- PLUGIN 2 ROUTER FEATURES -->
+    <!-- ===================== -->
+    <?php if ($canAccessRouterPlugins && checkperm("2") == "true" && $result): ?>
+      <?php while ($row = $result->fetch_assoc()): ?>
+        <?php if ($row['pluginID'] == 2): ?>
+          <?php
+            $id = $row['id'];
+            $name = $row['name'] ?? 'NULL';
+          ?>
+
+          <li class="dropdown-submenu">
+            <a href="#">
+              <i class="fa-solid fa-caret-left"></i> <?php echo $name; ?>
+            </a>
+
+            <ul class="dropdown-menu">
+              <li>
+                <a href="http://<?php echo $_SERVER['HTTP_HOST']; ?>/blackmagicvideohub/bmdrouterroutes.php?id=<?php echo $id; ?>">
+                  <?php echo $name; ?> Routes
+                </a>
+              </li>
+              <li>
+                <a href="http://<?php echo $_SERVER['HTTP_HOST']; ?>/blackmagicvideohub/bmdrouterinputnames.php?id=<?php echo $id; ?>">
+                  <?php echo $name; ?> Input Names
+                </a>
+              </li>
+              <li>
+                <a href="http://<?php echo $_SERVER['HTTP_HOST']; ?>/blackmagicvideohub/bmdrouteroutputnames.php?id=<?php echo $id; ?>">
+                  <?php echo $name; ?> Output Names
+                </a>
+              </li>
+              <li>
+                <a href="http://<?php echo $_SERVER['HTTP_HOST']; ?>/blackmagicvideohub/managevirtialpanles.php?id=<?php echo $id; ?>">
+                  <?php echo $name; ?> Virtual Router Panel
+                </a>
+              </li>
+            </ul>
+          </li>
+
         <?php endif; ?>
-        
+      <?php endwhile; ?>
+    <?php endif; ?>
 
+
+    <!-- ===================== -->
+    <!-- PLUGIN 5 -->
+    <!-- ===================== -->
+    <?php if ($userPerm >= 1 && checkperm("5") == "true" && $result): ?>
+     <?php $result = $conn->query($query);?>
+      <?php while ($row = $result->fetch_assoc()): ?>
+        <?php if ($row['pluginID'] == 5): ?>
+          <?php $id = $row['id']; $name = $row['name'] ?? 'NULL'; ?>
+
+          <li>
+            <a href="http://<?php echo $_SERVER['HTTP_HOST']; ?>/blackmagicrouterpanel/index.php?id=<?php echo $id; ?>">
+              <?php echo $name; ?> Button Mapping
+            </a>
+          </li>
+
+        <?php endif; ?>
+      <?php endwhile; ?>
+    <?php endif; ?>
+
+
+    <!-- ===================== -->
+    <!-- PLUGIN 8 -->
+    <!-- ===================== -->
+    <?php if ($userPerm >= 1 && checkperm("8") == "true" && $result): ?>
+     <?php $result = $conn->query($query);?>
+      <?php while ($row = $result->fetch_assoc()): ?>
+        <?php if ($row['pluginID'] == 8): ?>
+          <?php $id = $row['id']; $name = $row['name'] ?? 'NULL'; ?>
+
+          <li>
+            <a href="http://<?php echo $_SERVER['HTTP_HOST']; ?>/48blackmagicrouterpanel/index.php?id=<?php echo $id; ?>">
+              <?php echo $name; ?> Button Mapping
+            </a>
+          </li>
+
+        <?php endif; ?>
+      <?php endwhile; ?>
+    <?php endif; ?>
+
+  </ul>
+</li>
+<?php endif; ?>
 
         <!-- Audio Menu -->
         <?php if(($userPerm >= 1)  && checkperm("1") == "true"): ?>
@@ -384,7 +503,7 @@ $('.dropdown-submenu').hover(
         <?php endif; ?>
         
                 <!-- Monitor Menu -->
-        <?php if(($userPerm >= 1)  && checkperm("3") == "true"): ?>
+        <?php if(($userPerm >= 1)  && checkperm("6") == "true"): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Monitors <span class="caret"></span></a>
           <ul class="dropdown-menu">

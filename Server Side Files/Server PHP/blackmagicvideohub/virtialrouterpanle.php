@@ -4,7 +4,7 @@ session_start();
 
 
 if (!validateUserSession($conn, 0)) { showloggedout(); exit; }
-if (!validateUserSession($conn, 1, 2)) { showAccessDenied(); exit; }
+
 
 // -----------------------------------------------------------------------------
 // ALLOWED INPUTS / OUTPUTS
@@ -62,9 +62,9 @@ if ($allowedusers) {
 }
 $userperms = $_SESSION['user_permissions'] ?? 0;
 $currentUserID =$_SESSION['user_id'];
-if ($userperms < 4) {
+if ($userperms < 3) {
 if (!in_array($currentUserID, $allowedUsers)) {
-    echo "You are not allowed to access this panel.";
+    showAccessDenied();
     exit;
 }
 }
