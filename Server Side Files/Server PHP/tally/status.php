@@ -1,52 +1,32 @@
 <?php
+header('Content-Type: application/json');
+
+
 include "../config.php";
-session_start();
 
+$deviceId = $_GET['id'] ?? null;
 
-
-// Check permissions
-if (!validateUserSession($conn, 1)) {
-    showloggedout();
-    exit;
-}
-if (!validateUserSession($conn, 1, 4)) {
-    showAccessDenied();
-    exit;
-}
-
-$id = $_GET['id'];
-
-$stmt = $conn->prepare("SELECT ip FROM `devices` WHERE pluginID = 4 AND id=?");
-$stmt->bind_param("i", $id);
+$stmt = $conn->prepare("SELECT lastping, ip FROM devices WHERE id = ?");
+$stmt->bind_param("i", $deviceId);
 $stmt->execute();
-$stmt->bind_result($x32);
+$result = $stmt->get_result();
 
-if (!$stmt->fetch()) {
-    echo "No Device Found";
+if ($row = $result->fetch_assoc()) {
+
+    $lastPing = strtotime($row['lastping']);
+    $ip = $row['ip'];
+    $currentTime = time();
+
+    if (($currentTime - $lastPing) <= 5) {
+      echo 'Device Connected to server <br> Device IP: <a href="http://'.$ip.'">'.$ip.'</a>';
+    } 
+    else {
+      header("HTTP/1.1 504 Gateway Timeout");
     exit;
-}
-$stmt->close();
-
-if ($x32 == null){
-    echo "No Ip Provided!";
+    }
+} 
+else {
+    header("HTTP/1.1 504 Gateway Timeout");
     exit;
-}
-
-$url = "http://".$x32."/status";
-
-/* ---- 1 second timeout added here ---- */
-$context = stream_context_create([
-    'http' => [
-        'timeout' => 1.0
-    ]
-]);
-
-$response = @file_get_contents($url, false, $context);
-
-if ($response === FALSE) {
-    echo 'Device cannot be pinged from the server. It might be reachable at: <a href="http://'.$x32.'">'.$x32.'</a>';
-    exit;
-} else {
-    echo $response;
 }
 ?>
