@@ -545,8 +545,32 @@ $result = $conn->query($query);
           
           
           <ul class="dropdown-menu">
-            <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/tally/">Tally Grid</a></li>
+          
+          <?php if(($userPerm > 2)  && checkperm("4") == "true"): ?>
+            <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/tally/">Master Tally Grid</a></li>
+            
             <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/tally/device.php">Setup Devices</a></li>
+            <?php endif; ?>
+                  <li class="dropdown-submenu">
+                    <a href="#"><i class="fa-solid fa-caret-left"></i></i>Device Tally Grid</a>
+                    <ul class="dropdown-menu">
+          <?php
+            if ($result = $conn->query($query)) {
+              while ($row = $result->fetch_assoc()) {
+                if ($row['pluginID'] == 4){
+                  $id = $row['id']; 
+                  $name = $row['name'] ?? 'NULL';
+                  ?>
+                  <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/tally/devicetallygrid.php?id=<?php echo $id;?>"><?php echo $name;?> Tally Grid</a></li>
+                <?php }}} ?>
+                
+                
+                    </ul>
+                    
+                    
+                  </li>
+          
+          
             <?php
             if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {
@@ -556,8 +580,12 @@ $result = $conn->query($query);
                   ?>
                   <li><a href="Https://<?php echo $_SERVER['HTTP_HOST'];?>/aitally/?id=<?php echo $id;?>">AI Tally <?php echo $name;?></a></li>
                 <?php }}} ?>
-          </ul> 
-        </li>
+         
+        
+        
+
+                   </ul> 
+                  </li>
         <?php endif; ?>
 
         <?php if($userPerm >= 3): ?>

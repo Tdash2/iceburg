@@ -3,7 +3,7 @@ include "../config.php";
 session_start();
 
 if (!validateUserSession($conn, 1)) { showloggedout(); exit; }
-if (!validateUserSession($conn, 1, 4)) { showAccessDenied(); exit; }
+if (!validateUserSession($conn, 3, 4)) { showAccessDenied(); exit; }
 
 /* ---------- DEVICES ---------- */
 $devices = [];
@@ -43,6 +43,7 @@ $outputGroups = [];
 
 foreach ($devices as $d) {
 
+    // ALL sources (inputs)
     if (!empty($inputChannels[$d['id']])) {
         $inputGroups[] = [
             "id"=>$d['id'],
@@ -51,6 +52,7 @@ foreach ($devices as $d) {
         ];
     }
 
+    // ONLY destination device 77
     if (!empty($outputChannels[$d['id']])) {
         $outputGroups[] = [
             "id"=>$d['id'],
@@ -295,216 +297,197 @@ var DEVICES = <?php echo json_encode(array_column($devices,'id')); ?>;
 document.addEventListener("DOMContentLoaded", function () {
 
     const grid = document.getElementById("grid");
+
     const collapsedInputs = {};
     const collapsedOutputs = {};
 
-function buildGrid() {
-    grid.innerHTML = "";
+    function buildGrid() {
+        grid.innerHTML = "";
 
-    const rowHeaderWidth = 150;
-    const cellSize = 26;
-    let rowIndex = 1;
+        const rowHeaderWidth = 150;
+        const cellSize = 26;
 
-    // ---------- TOTAL OUTPUT COLUMNS ----------
-    // ---------- TOTAL OUTPUT COLUMNS ----------
-let totalCols = 0;
-OUTPUT_GROUPS.forEach(outGroup => {
-    totalCols += 1; // device header always counts
-    if (!collapsedOutputs[outGroup.id]) {
-        totalCols += Object.keys(outGroup.channels).length; // only add channels if expanded
-    }
-});
+        let rowIndex = 1;
+        let colIndex = 2;
 
-    // ---------- ESTIMATE TOTAL ROWS ----------
-    let totalRows = 1; // header row
-    INPUT_GROUPS.forEach(inGroup => {
-        totalRows++; // device row
-        if (!collapsedInputs[inGroup.id]) {
-            totalRows += Object.keys(inGroup.channels).length;
-        }
-    });
-
-    // ---------- TOP-LEFT CORNER ----------
-const corner = document.createElement("div");
-corner.className = "rowheader low corner";
-corner.textContent = " "; // or your corner label
-corner.style.gridColumnStart = 1;
-corner.style.gridRowStart = 1;
-grid.appendChild(corner);
-
-    // ---------- OUTPUT DEVICES ----------
-// ---------- OUTPUT DEVICES ----------
-let colIndex = 2;
-
-
-OUTPUT_GROUPS.forEach(outGroup => {
-    const outChKeys = Object.keys(outGroup.channels);
-
-    // Device header (name) — always visible
-    const deviceHeader = document.createElement("div");
-    deviceHeader.className = "header group rotate device-header";
-    deviceHeader.id = "outlabel_" + outGroup.id;
-    deviceHeader.innerHTML =
-        `<i class="fa-solid fa-chevron-down fa-toggle-icon${
-            collapsedOutputs[outGroup.id] ? ' collapsed' : ''
-        }"></i> ${outGroup.name}`;
-
-    deviceHeader.style.gridColumnStart = colIndex;
-    deviceHeader.style.gridRowStart = rowIndex;
-    deviceHeader.style.cursor = "pointer";
-
-    deviceHeader.onclick = () => {
-        collapsedOutputs[outGroup.id] = !collapsedOutputs[outGroup.id];
-        buildGrid();
-    };
-
-    grid.appendChild(deviceHeader);
-
-    // ALWAYS render vertical filler for device column
-    const vfill = document.createElement("div");
-    vfill.className = "group-fill-vert";
-    vfill.style.gridColumnStart = colIndex;
-    vfill.style.gridRow = (rowIndex + 2) + " / span " + (totalRows - rowIndex - 1);
-    grid.appendChild(vfill);
-
-    // Only render channels if NOT collapsed
-    if (!collapsedOutputs[outGroup.id]) {
-
-        let chCol = colIndex + 1;
-
-        outChKeys.forEach(ch => {
-            const chHeader = document.createElement("div");
-            chHeader.className = "header rotate low";
-            chHeader.textContent = outGroup.channels[ch];
-            chHeader.id = `outlabel_${outGroup.id}_${ch}`;
-
-            chHeader.style.gridColumnStart = chCol;
-            chHeader.style.gridRowStart = rowIndex;
-
-            grid.appendChild(chHeader);
-            chCol++;
+        // ---------- TOTAL INPUT COLUMNS ----------
+        let totalCols = 0;
+        INPUT_GROUPS.forEach(inGroup => {
+            totalCols += 1;
+            if (!collapsedInputs[inGroup.id]) {
+                totalCols += Object.keys(inGroup.channels).length;
+            }
         });
 
+        // ---------- TOTAL OUTPUT ROWS ----------
+        let totalRows = 1;
+        OUTPUT_GROUPS.forEach(outGroup => {
+            totalRows += 1;
+            if (!collapsedOutputs[outGroup.id]) {
+                totalRows += Object.keys(outGroup.channels).length;
+            }
+        });
+
+        // ---------- CORNER ----------
+        const corner = document.createElement("div");
+        corner.className = "rowheader low corner";
+        corner.style.gridColumnStart = 1;
+        corner.style.gridRowStart = 1;
+        grid.appendChild(corner);
+
+        // =========================================================
+        // ?? INPUTS (TOP)
+        // =========================================================
+        colIndex = 2;
+
+        INPUT_GROUPS.forEach(inGroup => {
+            const chKeys = Object.keys(inGroup.channels);
+
+            const deviceHeader = document.createElement("div");
+            deviceHeader.className = "header group rotate device-header";
+            deviceHeader.id = "in_device_" + inGroup.id;
+
+            deviceHeader.innerHTML =
+                `<i class="fa-solid fa-chevron-down fa-toggle-icon${
+                    collapsedInputs[inGroup.id] ? ' collapsed' : ''
+                }"></i> ${inGroup.name}`;
+
+            deviceHeader.style.gridColumnStart = colIndex;
+            deviceHeader.style.gridRowStart = 1;
+
+            deviceHeader.onclick = () => {
+                collapsedInputs[inGroup.id] = !collapsedInputs[inGroup.id];
+                buildGrid();
+            };
+
+            grid.appendChild(deviceHeader);
+
+            // vertical fill
+            const vfill = document.createElement("div");
+            vfill.className = "group-fill-vert";
+            vfill.style.gridColumnStart = colIndex;
+            vfill.style.gridRow = "2 / " + (1 + totalRows);
+            grid.appendChild(vfill);
+
+            let chCol = colIndex + 1;
+
+            if (!collapsedInputs[inGroup.id]) {
+                chKeys.forEach(ch => {
+                    const chHeader = document.createElement("div");
+                    chHeader.className = "header rotate low";
+                    chHeader.textContent = inGroup.channels[ch];
+                    chHeader.id = `in_${inGroup.id}_${ch}`;
+
+                    chHeader.style.gridColumnStart = chCol;
+                    chHeader.style.gridRowStart = 1;
+
+                    grid.appendChild(chHeader);
+                    chCol++;
+                });
+            }
+
+            inGroup._startCol = colIndex;
+            colIndex += 1 + (collapsedInputs[inGroup.id] ? 0 : chKeys.length);
+        });
+
+        // =========================================================
+        // ?? OUTPUTS (LEFT)
+        // =========================================================
+        rowIndex = 2;
+
+        OUTPUT_GROUPS.forEach(outGroup => {
+            const chKeys = Object.keys(outGroup.channels);
+
+            const deviceRow = document.createElement("div");
+            deviceRow.className = "rowheader group";
+            deviceRow.id = "out_device_" + outGroup.id;
+
+            deviceRow.innerHTML =
+                `<i class="fa-solid fa-chevron-down fa-toggle-icon3${
+                    collapsedOutputs[outGroup.id] ? ' collapsed' : ''
+                }"></i> ${outGroup.name}`;
+
+            deviceRow.style.gridColumnStart = 1;
+            deviceRow.style.gridRowStart = rowIndex;
+
+            deviceRow.onclick = () => {
+                collapsedOutputs[outGroup.id] = !collapsedOutputs[outGroup.id];
+                buildGrid();
+            };
+
+            grid.appendChild(deviceRow);
+
+            // horizontal fill
+            const hfill = document.createElement("div");
+            hfill.className = "group-fill";
+            hfill.style.gridColumn = "2 / " + (2 + totalCols);
+            hfill.style.gridRowStart = rowIndex;
+            grid.appendChild(hfill);
+
+            rowIndex++;
+
+            if (!collapsedOutputs[outGroup.id]) {
+                chKeys.forEach(outCh => {
+
+                    const rowh = document.createElement("div");
+                    rowh.className = "rowheader low";
+                    rowh.textContent = outGroup.channels[outCh];
+                    rowh.id = `out_${outGroup.id}_${outCh}`;
+
+                    rowh.style.gridColumnStart = 1;
+                    rowh.style.gridRowStart = rowIndex;
+
+                    grid.appendChild(rowh);
+
+                    // cells
+                    INPUT_GROUPS.forEach(inGroup => {
+                        if (!collapsedInputs[inGroup.id]) {
+                            const inChKeys = Object.keys(inGroup.channels);
+
+                            inChKeys.forEach((inCh, idx) => {
+                                const cell = document.createElement("div");
+                                cell.className = "cell";
+
+                                cell.dataset.indev = inGroup.id;
+                                cell.dataset.inch = inCh;
+                                cell.dataset.outdev = outGroup.id;
+                                cell.dataset.outch = outCh;
+
+                                if (
+                                    MAPS?.[inGroup.id]?.[inCh]?.[outGroup.id]?.[outCh]
+                                ) {
+                                    cell.classList.add("mapped");
+                                }
+
+                                cell.style.gridColumnStart =
+                                    inGroup._startCol + 1 + idx;
+
+                                cell.style.gridRowStart = rowIndex;
+
+                                grid.appendChild(cell);
+                            });
+                        }
+                    });
+
+                    rowIndex++;
+                });
+            }
+        });
+
+        grid.style.gridTemplateColumns =
+            rowHeaderWidth +
+            "px repeat(" +
+            totalCols +
+            ", " +
+            cellSize +
+            "px)";
+
+        enableInputToggles();
     }
 
-    outGroup._startCol = colIndex;
-    colIndex += 1 + (collapsedOutputs[outGroup.id] ? 0 : outChKeys.length);
-});
-
-
-
-    rowIndex++;
-
-    // ---------- INPUT DEVICES ----------
-    INPUT_GROUPS.forEach(inGroup => {
-        const inChKeys = Object.keys(inGroup.channels);
-
-        // Left device label
-        const deviceRow = document.createElement("div");
-deviceRow.className = "rowheader group";
-deviceRow.id = "in_device_" + inGroup.id;
-
-deviceRow.innerHTML =
-            `<i class="fa-solid fa-chevron-down fa-toggle-icon3${
-                collapsedInputs[inGroup.id] ? ' collapsed' : ''
-            }"></i> ${inGroup.name}`;
-
-        deviceRow.style.gridColumnStart = 1;
-        deviceRow.style.gridRowStart = rowIndex;
-
-        deviceRow.onclick = () => {
-            collapsedInputs[inGroup.id] =
-                !collapsedInputs[inGroup.id];
-            buildGrid();
-        };
-
-        grid.appendChild(deviceRow);
-
-        // horizontal divider fill
-        const filler = document.createElement("div");
-        filler.className = "group-fill";
-        filler.style.gridColumn = "2 / span " + totalCols;
-        filler.style.gridRowStart = rowIndex;
-        grid.appendChild(filler);
-
-        rowIndex++;
-
-        if (!collapsedInputs[inGroup.id]) {
-            inChKeys.forEach(inCh => {
-                const rowh = document.createElement("div");
-                rowh.className = "rowheader low";
-                rowh.id = "in_" + inGroup.id + "_" + inCh;
-                rowh.textContent =
-                    inGroup.channels[inCh];
-
-                rowh.style.gridColumnStart = 1;
-                rowh.style.gridRowStart = rowIndex;
-                grid.appendChild(rowh);
-
-                OUTPUT_GROUPS.forEach(outGroup => {
-                    if (!collapsedOutputs[outGroup.id]) {
-                        const outChKeys =
-                            Object.keys(outGroup.channels);
-
-                        outChKeys.forEach((outCh, idx) => {
-                            const cell =
-                                document.createElement("div");
-
-                            cell.className = "cell";
-                            cell.dataset.indev =
-                                inGroup.id;
-                            cell.dataset.inch = inCh;
-                            cell.dataset.outdev =
-                                outGroup.id;
-                            cell.dataset.outch =
-                                outCh;
-
-                            if (
-                                MAPS?.[
-                                    inGroup.id
-                                ]?.[inCh]?.[
-                                    outGroup.id
-                                ]?.[outCh]
-                            ) {
-                                cell.classList.add(
-                                    "mapped"
-                                );
-                            }
-
-                            cell.style.gridColumnStart =
-                                outGroup._startCol +
-                                1 +
-                                idx;
-
-                            cell.style.gridRowStart =
-                                rowIndex;
-
-                            grid.appendChild(cell);
-                        });
-                    }
-                });
-
-                rowIndex++;
-            });
-        }
-    });
-
-    // ---------- GRID TEMPLATE ----------
-    grid.style.gridTemplateColumns =
-        rowHeaderWidth +
-        "px repeat(" +
-        totalCols +
-        ", " +
-        cellSize +
-        "px)";
-
-    enableInputToggles();
-}
-
-
-
-
-    // ---------- CLICK MAPPING ----------
+    // =========================================================
+    // CLICK MAP
+    // =========================================================
     grid.addEventListener("click", function (e) {
         const cell = e.target.closest(".cell");
         if (!cell) return;
@@ -521,137 +504,122 @@ deviceRow.innerHTML =
         });
     });
 
-    // ---------- INPUT TOGGLE HANDLER ----------
+    // =========================================================
+    // INPUT TOGGLE
+    // =========================================================
     function enableInputToggles() {
         INPUT_GROUPS.forEach(inGroup => {
             Object.keys(inGroup.channels).forEach(inCh => {
                 const el = document.getElementById(`in_${inGroup.id}_${inCh}`);
                 if (!el) return;
 
-                el.replaceWith(el.cloneNode(true));
-                const newEl = document.getElementById(`in_${inGroup.id}_${inCh}`);
+                el.onclick = async function () {
+                    const isActive = this.classList.contains("high");
+                    const newVal = isActive ? 0 : 1;
 
-                newEl.addEventListener("click", async function () {
-                    try {
-                        const isActive = this.classList.contains("high");
-                        const newVal = isActive ? 0 : 1;
+                    const url = `/tally/settallystatus.php?id=${inGroup.id}&ch${inCh}=${newVal}`;
+                    const res = await fetch(url);
+                    if (!res.ok) return;
 
-                        const url = `/tally/settallystatus.php?id=${encodeURIComponent(inGroup.id)}&ch${encodeURIComponent(inCh)}=${newVal}`;
-                        const res = await fetch(url, { method: 'GET' });
-
-                        if (!res.ok) {
-                            console.error("Tally update failed", res.status, url);
-                            return;
-                        }
-
-                        this.classList.toggle("high", !isActive);
-                        this.classList.toggle("low", isActive);
-
-                    } catch (err) {
-                        console.error("Error toggling input tally", err);
-                    }
-                });
+                    this.classList.toggle("high", !isActive);
+                    this.classList.toggle("low", isActive);
+                };
             });
         });
     }
 
-    // ---------- STATUS REFRESH ----------
-    function safeFetchJson(url, timeout = 3000) {
-        return Promise.race([
-            fetch(url, { cache: "no-store" }).then(r => r.json()),
-            new Promise((_, rej) => setTimeout(() => rej("timeout"), timeout))
-        ]);
+    // =========================================================
+    // DEVICE STATUS (ONLINE)
+    // =========================================================
+    function refreshDeviceStatus() {
+        DEVICES.forEach(id => {
+            fetch("/tally/devicestatus.php?id=" + id)
+            .then(r => r.text())
+            .then(status => {
+
+                const online = status.trim() === "true";
+
+                const inDev = document.getElementById("in_device_" + id);
+                const outDev = document.getElementById("out_device_" + id);
+
+                if (inDev) inDev.classList.toggle("device-online", online);
+                if (outDev) outDev.classList.toggle("device-online", online);
+
+            })
+            .catch(()=>{});
+        });
     }
 
-function refreshDeviceStatus() {
-    DEVICES.forEach(id => {
-
-        fetch("/tally/devicestatus.php?id=" + id, { cache: "no-store" })
-        .then(r => r.text())
-        .then(status => {
-
-            const online = status.trim() === "true";
-
-            const inDev = document.getElementById("in_device_" + id);
-            const outDev = document.getElementById("outlabel_" + id);
-
-            if (inDev) {
-                inDev.classList.toggle("device-online", online);
-            }
-
-            if (outDev) {
-                outDev.classList.toggle("device-online", online);
-            }
-
-        })
-        .catch(()=>{});
-    });
-}
-
+    // =========================================================
+    // STATUS REFRESH (INPUT + OUTPUT)
+    // =========================================================
     function refreshStatus() {
         DEVICES.forEach(id => {
-            safeFetchJson("gettallystatus.php?id=" + id)
+            fetch("gettallystatus.php?id=" + id)
+                .then(r => r.json())
                 .then(s => {
                     if (!s) return;
 
+                    // INPUTS (top)
                     if (s.inputs) {
                         Object.entries(s.inputs).forEach(([ch, val]) => {
-                            const el = document.getElementById("in_" + id + "_" + ch);
+                            const el = document.getElementById(`in_${id}_${ch}`);
                             if (el) {
-                                const status = !!val;
-                                el.classList.toggle("high", status);
-                                el.classList.toggle("low", !status);
+                                el.classList.toggle("high", !!val);
+                                el.classList.toggle("low", !val);
                             }
                         });
                     }
 
+                    // OUTPUTS (left rows now!)
                     if (s.outputs) {
                         Object.entries(s.outputs).forEach(([ch, val]) => {
-                            const headerEl = document.getElementById(`outlabel_${id}_${ch}`);
-                            if (headerEl) {
-                                const status = !!val;
-                                headerEl.classList.toggle("high", status);
-                                headerEl.classList.toggle("low", !status);
+                            const el = document.getElementById(`out_${id}_${ch}`);
+                            if (el) {
+                                el.classList.toggle("high", !!val);
+                                el.classList.toggle("low", !val);
                             }
                         });
                     }
 
                 })
-                .catch(() => {});
+                .catch(()=>{});
         });
     }
-async function refreshTallyMappings() {
-    try {
-        // Fetch the current mappings
-        const mappings = await safeFetchJson('gettallymappings.php', 4000);
 
-        // Clear all existing mapped classes
-        document.querySelectorAll('.cell.mapped').forEach(cell => cell.classList.remove('mapped'));
+    // =========================================================
+    // MAPPING REFRESH
+    // =========================================================
+    function refreshTallyMappings() {
+        fetch('gettallymappings.php')
+            .then(r => r.json())
+            .then(mappings => {
 
-        // Apply the new mappings
-        if (Array.isArray(mappings)) {
-            mappings.forEach(m => {
-                const selector = `.cell[data-indev="${CSS.escape(String(m.from_device))}"][data-inch="${CSS.escape(String(m.from_channel))}"][data-outdev="${CSS.escape(String(m.to_device))}"][data-outch="${CSS.escape(String(m.to_channel))}"]`;
-                const el = document.querySelector(selector);
-                if (el) el.classList.add('mapped');
-            });
-        } else {
-            console.warn('gettallymappings returned unexpected data:', mappings);
-        }
-    } catch (err) {
-        console.error('Failed to refresh tally mappings:', err);
+                document.querySelectorAll('.cell.mapped')
+                    .forEach(c => c.classList.remove('mapped'));
+
+                mappings.forEach(m => {
+                    const sel = `.cell[data-indev="${m.from_device}"][data-inch="${m.from_channel}"][data-outdev="${m.to_device}"][data-outch="${m.to_channel}"]`;
+                    const el = document.querySelector(sel);
+                    if (el) el.classList.add('mapped');
+                });
+
+            })
+            .catch(()=>{});
     }
-}
 
-
-    // ---------- INITIAL BUILD ----------
+    // =========================================================
+    // INIT
+    // =========================================================
     buildGrid();
     refreshStatus();
-    setInterval(refreshStatus, 400);
-refreshTallyMappings(); // one-time update
-setInterval(refreshTallyMappings, 400); // auto-refresh every second
-refreshDeviceStatus();
-setInterval(refreshDeviceStatus, 5000);
+    refreshDeviceStatus();
+    refreshTallyMappings();
+
+    setInterval(refreshStatus, 500);
+    setInterval(refreshDeviceStatus, 5000);
+    setInterval(refreshTallyMappings, 800);
+
 });
 </script>
 
