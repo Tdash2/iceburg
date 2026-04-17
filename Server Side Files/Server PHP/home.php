@@ -159,32 +159,53 @@ async function loadDivAsync(div) {
     const url = div.getAttribute('data-url');
     if (!url) return;
 
+    let data = '';
+    let hasError = false;
+
     try {
         const response = await fetch(url);
+
+        // Try to get response body no matter what
+        data = await response.text();
+
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            hasError = true;
         }
 
-        const data = await response.text();
-
-        // Insert HTML content
-        div.innerHTML = data;
-
-        const timeDiv = document.createElement('div');
-        timeDiv.className = 'loadTime';
-        timeDiv.textContent = 'Connected at: ' + new Date().toLocaleString();
-
-        div.insertAdjacentElement('afterbegin', timeDiv);
-
     } catch (err) {
-        div.innerHTML = '<p style="color:red;">Error Connecting To Device</p>';
-
-        const timeDiv = document.createElement('div');
-        timeDiv.className = 'loadTime';
-        timeDiv.textContent = 'Connection Failed At: ' + new Date().toLocaleString();
-
-        div.insertAdjacentElement('afterbegin', timeDiv);
+        hasError = true;
     }
+
+    // Clear div
+    div.innerHTML = '';
+
+    // Show error if needed
+    if (hasError) {
+        const errorMsg = document.createElement('p');
+        errorMsg.style.color = 'red';
+        div.appendChild(errorMsg);
+    }
+
+    // Show data if any exists
+    if (data) {
+        const contentDiv = document.createElement('div');
+        contentDiv.innerHTML = data;
+        div.appendChild(contentDiv);
+    }
+
+    // Add timestamp
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'loadTime';
+    
+    if (hasError) {
+    timeDiv.style.color = 'red';
+    }
+    timeDiv.textContent = hasError
+
+        ? 'Error Connecting To Device At: ' + new Date().toLocaleString()
+        : 'Connected at: ' + new Date().toLocaleString();
+
+    div.insertAdjacentElement('afterbegin', timeDiv);
 }
 </script>
 

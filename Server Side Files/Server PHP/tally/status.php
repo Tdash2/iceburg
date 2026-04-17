@@ -21,7 +21,9 @@ if ($row = $result->fetch_assoc()) {
       echo 'Device Connected to server <br> Device IP: <a href="http://'.$ip.'">'.$ip.'</a>';
     } 
     else {
-      header("HTTP/1.1 504 Gateway Timeout");
+     header("HTTP/1.1 504 Gateway Timeout");
+     echo 'Device was last seen online at '.date("Y-m-d g:i a", $lastPing).'. Last IP: <a href="http://'.$ip.'">'.$ip.'</a>'; 
+      
     exit;
     }
 } 
