@@ -498,6 +498,21 @@ $result = $conn->query($query);
                     </ul>
                   </li>
                 <?php }}} ?>   
+             <?php
+             if ($result = $conn->query($query)) {
+              while ($row = $result->fetch_assoc()) {
+                if ($row['pluginID'] == 11){
+                  $id = $row['id']; 
+                  $name = $row['name'] ?? 'NULL';
+                  ?>
+                  <li class="dropdown-submenu">
+                    <a href="#"><i class="fa-solid fa-caret-left"></i></i> <?php echo $name;?></a>
+                    <ul class="dropdown-menu">
+                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/ajafs4/?id=<?php echo $id;?>"><?php echo $name;?> Video Settings</a></li>
+                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/ajafs4/audio.php?id=<?php echo $id;?>"><?php echo $name;?> Audio Settings</a></li>
+                    </ul>
+                  </li>
+                <?php }}} ?>   
           </ul> 
         </li>
         <?php endif; ?>

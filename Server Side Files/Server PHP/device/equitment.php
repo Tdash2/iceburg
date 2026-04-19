@@ -126,7 +126,7 @@ body {
                 ?>    
             </select>
         </div>
-        <?php  if (($existing['pluginID'] == 3) || (!$editMode)) { ?>  
+        <?php if (in_array($existing['pluginID'], [11, 3]) || !$editMode) { ?>
         <div class="form-group">
             <label for="device">Madi Sorce (Embeding Devices Only)</label>
             <select class="form-control" id="madisorce" name="madisorce" required>
