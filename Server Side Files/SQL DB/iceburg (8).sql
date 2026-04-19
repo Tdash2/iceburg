@@ -83,7 +83,8 @@ INSERT INTO `deviceplugin` (`id`, `pluginName`, `pluginFolder`) VALUES
 (7, 'AI Tally', '/aitally/'),
 (8, 'Blackmagic Router Panel 48 Button', '/48blackmagicrouterpanel/'),
 (9, 'ZowieTek POV Camera', '/zowietekpov/'),
-(10, 'AJA FS-2', '/ajafs2/');
+(10, 'AJA FS-2', '/ajafs2/'),
+(11, 'AJA FS-4', '/ajafs4/');
 
 -- --------------------------------------------------------
 

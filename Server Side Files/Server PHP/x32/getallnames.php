@@ -40,7 +40,7 @@ function send_recv($msg){
     global $sock;
     @fwrite($sock, $msg);
     $start = microtime(true);
-    while (microtime(true) - $start < 0.02){
+    while (microtime(true) - $start < 0.08){
         $resp = @fread($sock, 2048);
         if ($resp) return $resp;
     }
@@ -105,6 +105,25 @@ function getCurrentP16(){
     return $current;
 }
 
+function getcurrentoutputs(){
+    $current = [];
+    for($i=1;$i<=16;$i++){
+        $addr = sprintf("/outputs/main/%02d/src", $i);
+        $resp = send_recv(osc($addr));
+        if (!$resp){
+            $current[$i] = 0;
+            continue;
+        }
+        $addrPad = (int)(ceil((strlen($addr)+1)/4)*4);
+        $typePad = 4;
+        $offset = $addrPad + $typePad;
+        $data = substr($resp, $offset, 4);
+        $val = unpack("N", $data)[1];
+        $current[$i] = $val;
+    }
+    return $current;
+}
+
 /* ---------------- Get channel & bus names --------------- */
 function getSources(){
     $sources = [];
@@ -134,6 +153,7 @@ function getSources(){
 
 $currentUserOutputs = getUserOutputs();
 $currentP16 = getCurrentP16();
+$currentMain = getcurrentoutputs();
 $sources = getSources();
 
 // Build lookup table: enum => label
@@ -145,6 +165,8 @@ foreach($sources as $source){
 // Combine outputs with resolved names
 $outputs = [];
 foreach($currentUserOutputs as $num => $val){
+
+
     $name = userOutputName($val,$x32name);
 
     // If the user output is a P16 (185-200), resolve actual routed channel name
@@ -152,6 +174,16 @@ foreach($currentUserOutputs as $num => $val){
         $p16Num = $val - 184;
         if(isset($currentP16[$p16Num])){
             $enum = $currentP16[$p16Num];
+            if(isset($enumToLabel[$enum])){
+                $name = $enumToLabel[$enum];
+            }
+        }
+    }
+    
+    if($val >= 169 && $val <= 184){
+        $mainNum = $val - 168;
+        if(isset($currentMain[$mainNum])){
+            $enum = $currentMain[$mainNum];
             if(isset($enumToLabel[$enum])){
                 $name = $enumToLabel[$enum];
             }

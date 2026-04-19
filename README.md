@@ -25,3 +25,4 @@ Below is a list of currently supported devices:
 + Tally Iceberg IO Devices (GIP, GPO and TSL 3.0)
 + ZowieTek 4k POV Camera
 + AJA FS-2 Frame Synchronizer and Converter
++ AJA FS-4 Frame Synchronizer and Converter
