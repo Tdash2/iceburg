@@ -111,7 +111,7 @@ if (filter_var(
 
 
 // --- Handle Form Submission ---
-if ($_SERVER["REQUEST_METHOD"] == "POST" && !($_POST["username"] == "frontPanel")) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && !(strcasecmp($_POST["username"], "frontPanel") == 0)) {
     $username = $_POST["username"];
     $password = $_POST["password"];
     $redirect = $_POST["redirect"] ?? 'home.php';
@@ -155,7 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !($_POST["username"] == "frontPanel"
     }
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "GET" && !($_GET["username"] == null && !($_GET["username"] == "frontPanel"))) {
+if ($_SERVER["REQUEST_METHOD"] == "GET" && !($_GET["username"] == null && !(strcasecmp($_GET["username"], "frontPanel") == 0))) {
     $username = $_GET["username"];
     $password = $_GET["password"];
     echo $username;
