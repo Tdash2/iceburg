@@ -498,21 +498,6 @@ $result = $conn->query($query);
                     </ul>
                   </li>
                 <?php }}} ?>   
-             <?php
-             if ($result = $conn->query($query)) {
-              while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 11){
-                  $id = $row['id']; 
-                  $name = $row['name'] ?? 'NULL';
-                  ?>
-                  <li class="dropdown-submenu">
-                    <a href="#"><i class="fa-solid fa-caret-left"></i></i> <?php echo $name;?></a>
-                    <ul class="dropdown-menu">
-                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/ajafs4/?id=<?php echo $id;?>"><?php echo $name;?> Video Settings</a></li>
-                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/ajafs4/audio.php?id=<?php echo $id;?>"><?php echo $name;?> Audio Settings</a></li>
-                    </ul>
-                  </li>
-                <?php }}} ?>   
           </ul> 
         </li>
         <?php endif; ?>
@@ -617,7 +602,7 @@ $result = $conn->query($query);
 
         <?php if($userPerm >= 5): ?>
         <li class="dropdown" id="first-link">
-          <a class="dropdown-toggle" data-toggle="dropdown" href="#">User Management<span class="caret"></span></a>
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Users<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/addnewuser.php">Add A new User</a></li>
             <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/viewusers.php">View Users</a></li>
@@ -626,12 +611,14 @@ $result = $conn->query($query);
         <?php endif; ?>
 
         <!-- User Menu -->
-        <?php if($userPerm >= 1): ?>
+        <?php if($userPerm >= 1 && (!($_SESSION['UserEmail']  == "frontPanel"))): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#"><?php echo $_SESSION['UserEmail']; ?><span class="caret"></span></a>
           <ul class="dropdown-menu">
+          
+         
             <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/changepassword.php">Change Password</a></li>
-            
+           
              <!--<li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/about.php">About Iceburg</a></li>-->
 
             <li><a href='Http://<?php echo $_SERVER['HTTP_HOST'];?>/logout.php?url=<?php echo $redirectUrl; ?>'>Logout</a></li> 

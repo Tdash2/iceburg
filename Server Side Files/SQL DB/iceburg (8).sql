@@ -41,8 +41,7 @@ CREATE TABLE `Admin Users` (
 
 INSERT INTO `Admin Users` (`UserEmail`, `UserPassword`, `UserPermissions`, `id`, `allowedPlugins`) VALUES
 ('admin', '$2y$10$aYyi/ztJI41GZD7s90rYLOenHCXJLW3CIWuar4LHa3mPJDASQMQLK', '5', 16, '[\"2\",\"1\"]'),
-('tally', '$2y$10$u.QMshFUp96m0AyapND53exm86BP0KVVpWzsrmqzE5nsFuHMuwUlq', '2', 24, '[\"7\",\"4\"]'),
-('eic', '$2y$10$RUooxujpU.BqhtCJLD843uWcJEyfh37V0S77oQjZJj5/87nh6EZtK', '3', 27, '[\"7\",\"5\",\"8\",\"6\",\"2\",\"4\"]');
+('frontPanle', '$2y$10$WfbIdtZ8fBR8kFP13WJq0etVEQxsNo1.pRi89wIPZSYR9c6qGPNo.', '2', 24, '[\"7\",\"4\"]');
 
 -- --------------------------------------------------------
 

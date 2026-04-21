@@ -56,8 +56,62 @@ function verifyLogin($username, $password, $conn) {
     return ['id' => null, 'success' => false];
 }
 
+$ip = $_SERVER['REMOTE_ADDR'];
+
+if (filter_var(
+    $ip,
+    FILTER_VALIDATE_IP,
+    FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6
+)) {
+    if ($ip === '127.0.0.1' || $ip === '::1') {
+    $username = "frontPanel";
+    $password = "frontPanel";
+    $redirect = $_POST["redirect"] ?? 'home.php';
+
+    $ip = getClientIp();
+    $timestamp = date("Y-m-d H:i:s");
+
+    $user = verifyLogin($username, $password, $conn);
+
+    if ($user['success']) {
+        session_regenerate_id(true);
+        $_SESSION['loggedin'] = true;
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_permissions'] = $user['permissions'];
+
+        // Log successful login
+        $details = [
+            'ip' => $ip,
+            'timestamp' => $timestamp,
+            'outcome' => 'success',
+            'username' => $username
+        ];
+        logAudit($conn, $user['id'], 'login', $details);
+        
+        
+     
+
+        header("Location: " . $redirect);
+        exit;
+    } else {
+        // Log failed login attempt (with user ID if username exists)
+        $details = [
+            'ip' => $ip,
+            'timestamp' => $timestamp,
+            'outcome' => 'failed',
+            'username' => $username
+        ];
+        logAudit($conn, $user['id'], 'login', $details);
+
+        echo "Invalid username or password";
+    }
+}
+}
+
+
+
 // --- Handle Form Submission ---
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && !($_POST["username"] == "frontPanel")) {
     $username = $_POST["username"];
     $password = $_POST["password"];
     $redirect = $_POST["redirect"] ?? 'home.php';
@@ -101,7 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "GET" && !($_GET["username"] == null)) {
+if ($_SERVER["REQUEST_METHOD"] == "GET" && !($_GET["username"] == null && !($_GET["username"] == "frontPanel"))) {
     $username = $_GET["username"];
     $password = $_GET["password"];
     echo $username;
