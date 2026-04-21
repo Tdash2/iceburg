@@ -93,6 +93,7 @@ bool fetchFromA() {
                "&IP=" + Ethernet.localIP().toString() +
                " HTTP/1.0\r\n\r\n");
 
+  // Skip HTTP headers
   while (client.connected()) {
     String line = client.readStringUntil('\n');
     if (line == "\r") break;
@@ -107,11 +108,25 @@ bool fetchFromA() {
 
   JsonObject outputs = doc["outputs"];
 
-  channels.clear();
-  channels.reserve(outputs.size());
+  // ===== FIX: determine max channel =====
+  int maxCh = 0;
+  for (JsonPair kv : outputs) {
+    int ch = atoi(kv.key().c_str());
+    if (ch > maxCh) maxCh = ch;
+  }
 
-  for (JsonPair kv : outputs)
-    channels.push_back(kv.value() | false);
+  // Resize channel array
+  channels.clear();
+  channels.resize(maxCh, false);
+
+  // ===== FIX: assign by key instead of order =====
+  for (JsonPair kv : outputs) {
+    int ch = atoi(kv.key().c_str());
+
+    if (ch > 0 && ch <= maxCh) {
+      channels[ch - 1] = kv.value() | false;
+    }
+  }
 
   client.stop();
   return true;
