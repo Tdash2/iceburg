@@ -5,7 +5,7 @@ session_start();
 
 
 if (!validateUserSession($conn, 1)) { showloggedout(); exit; }
-if (!validateUserSession($conn, 2, 4)) { showAccessDenied(); exit; }
+if (!validateUserSession($conn, 2, $_GET['to_device'])) { showAccessDenied(); exit; }
 
 
 $fd = $_GET['from_device'];

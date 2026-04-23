@@ -40,7 +40,7 @@ function registerUser($username, $password, $permissions, $allowedPlugins, $conn
 
 // Fetch all plugins
 $pluginOptions = [];
-$result = $conn->query("SELECT * FROM `deviceplugin`");
+$result = $conn->query("SELECT id, name FROM `devices` ORDER BY id ASC");
 if ($result) {
     while ($row = $result->fetch_assoc()) {
         $pluginOptions[] = $row;
@@ -105,11 +105,11 @@ body { background-color: #232323; color: #FFF; }
         <div class="form-group">
             <label for="permissions">User Permissions</label>
             <select class="form-control" id="permissions" name="permissions" required>
-                <option value="1">1 - Viewer</option>
-                <option value="2">2 - Restricted Editor</option>
-                <option value="3">3 - Full Editor</option>
-                <option value="4">4 - Manager</option>
-                <option value="5">5 - Full Administrator</option>
+                <option value="1">1 - Viewer (Can View All Devices Assigned To User) </option>
+                <option value="2">2 - Restricted Editor (Can Edit All Devices Assigned To User)</option>
+                <option value="3">3 - Full Editor (Can Edit All Devices On the Server)</option>
+                <option value="4">4 - Manager (Can Add and Remove Devices)</option>
+                <option value="5">5 - Full Administrator (Can Add and Remove Users)</option>
             </select>
         </div>
 
@@ -119,7 +119,7 @@ body { background-color: #232323; color: #FFF; }
             <?php foreach ($pluginOptions as $plugin): ?>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="checkbox" id="plugin_<?php echo $plugin['id']; ?>" name="allowedPlugins[]" value="<?php echo $plugin['id']; ?>">
-                    <label class="form-check-label" for="plugin_<?php echo $plugin['id']; ?>"><?php echo htmlspecialchars($plugin['pluginName']); ?></label>
+                    <label class="form-check-label" for="plugin_<?php echo $plugin['id']; ?>"><?php echo htmlspecialchars($plugin['name']); ?></label>
                 </div>
             <?php endforeach; ?>
         </div>

@@ -3,7 +3,7 @@ include "../config.php";
 session_start();
 
 if (!validateUserSession($conn, 0)) { showloggedout(); exit; }
-if (!validateUserSession($conn, 1, 11)) { showAccessDenied(); exit; }
+if (!validateUserSession($conn, 1, $_GET['id'])) { showAccessDenied(); exit; }
 
 $id = $_GET['id'] ?? 0;
 $id2 = $_GET['id'] ?? 0;

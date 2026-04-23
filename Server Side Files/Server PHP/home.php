@@ -117,7 +117,7 @@ if ($result = $conn->query($query)) {
     echo '<tbody>';
 
     while ($row = $result->fetch_assoc()) {
-    $pid = $row['pluginID']; 
+    $pid = $row['id']; 
     if (validateUserSession($conn, 1, $pid)) {
 
 

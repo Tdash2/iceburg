@@ -8,7 +8,7 @@ if (!validateUserSession($conn, 1)) {
     showloggedout();
     exit;
 }
-if (!validateUserSession($conn, 1, 1)) {
+if (!validateUserSession($conn, 1, $_GET['id'])) {
     showAccessDenied();
     exit;
 }
@@ -113,6 +113,7 @@ function getTrim($ch){
 
 /* ================= AJAX HANDLER ================= */
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["ajax"])) {
+if (!validateUserSession($conn, 2, $_GET['id'])) { showAccessDenied(); exit; }
     $ch = (int)$_POST["ch"];
     $src = getSource($ch);
     $useHA = ($src !== null && $src >= 0 && $src <= 32);

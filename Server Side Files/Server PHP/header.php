@@ -4,11 +4,7 @@ if (!isset($_SESSION)) session_start();
 
 // Fetch user permissions
 $userPerm = 0;
-$x32allowed = $_SESSION['x32'] ?? "false";
-$x9905allowed = $_SESSION['x9905'] ?? "false";
-$videohuballowed = $_SESSION['videohub'] ?? "false";
-$tallyallowed = $_SESSION['tally'] ?? "false";
-$videhubpanleallowed = $_SESSION['videohubpanle'] ?? "false";
+
 $allowedPluginsJson = "";
 
 if (isset($_SESSION['loggedin'], $_SESSION['user_id']) && $_SESSION['loggedin'] === true) {
@@ -88,6 +84,34 @@ if ($resultPanels && $resultPanels->num_rows > 0) {
         $allPanels[] = $row;
         $panelsByDevice[$row['deviceID']][] = $row;
     }
+}
+
+$devices = [];
+
+$stmttte = $conn->prepare("
+    SELECT id, name, ip, pluginID, madisorce, lastping
+    FROM devices
+");
+$stmttte->execute();
+
+$resultdddwdd = $stmttte->get_result();
+
+while ($row = $resultdddwdd->fetch_assoc()) {
+    // Only include devices user is allowed to access
+    if (checkperm($row['id'])) {
+        $devices[] = $row;
+    }
+}
+
+
+
+function userHasAnyPluginAccess(array $pluginIDs, array $devices): bool {
+    foreach ($devices as $device) {
+        if (in_array($device['pluginID'], $pluginIDs)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // IMPORTANT: always close
@@ -309,16 +333,12 @@ $('.dropdown-submenu').hover(
  <!-- Router Menu -->
 <?php
 $hasVirtualPanels = !empty($allPanels);
-$canAccessRouterPlugins = ($userPerm >= 1 && (
-    checkperm("2") == "true" ||
-    checkperm("5") == "true" ||
-    checkperm("8") == "true"
-));
+
 
 $result = $conn->query($query);
 ?>
 
-<?php if ($userPerm >= 1 && ($hasVirtualPanels || $canAccessRouterPlugins)): ?>
+<?php if ($userPerm >= 1 && ($hasVirtualPanels || userHasAnyPluginAccess([2,5,8], $devices))): ?>
 <li class="dropdown" id="first-link">
 
   <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -347,14 +367,12 @@ $result = $conn->query($query);
         </ul>
       </li>
     <?php endif; ?>
-
-
     <!-- ===================== -->
     <!-- PLUGIN 2 ROUTER FEATURES -->
     <!-- ===================== -->
-    <?php if ($canAccessRouterPlugins && checkperm("2") == "true" && $result): ?>
-      <?php while ($row = $result->fetch_assoc()): ?>
-        <?php if ($row['pluginID'] == 2): ?>
+    <?php if ($result): ?>
+      <?php while ($row = $result->fetch_assoc()):  ?>
+        <?php if ($row['pluginID'] == 2 && checkperm($row['id'])): ?>
           <?php
             $id = $row['id'];
             $name = $row['name'] ?? 'NULL';
@@ -397,10 +415,10 @@ $result = $conn->query($query);
     <!-- ===================== -->
     <!-- PLUGIN 5 -->
     <!-- ===================== -->
-    <?php if ($userPerm >= 1 && checkperm("5") == "true" && $result): ?>
+    <?php if ($userPerm >= 1  && $result): ?>
      <?php $result = $conn->query($query);?>
       <?php while ($row = $result->fetch_assoc()): ?>
-        <?php if ($row['pluginID'] == 5): ?>
+        <?php if ($row['pluginID'] == 5 && checkperm($row['id'])): ?>
           <?php $id = $row['id']; $name = $row['name'] ?? 'NULL'; ?>
 
           <li>
@@ -420,7 +438,7 @@ $result = $conn->query($query);
     <?php if ($userPerm >= 1 && checkperm("8") == "true" && $result): ?>
      <?php $result = $conn->query($query);?>
       <?php while ($row = $result->fetch_assoc()): ?>
-        <?php if ($row['pluginID'] == 8): ?>
+        <?php if ($row['pluginID'] == 8 && checkperm($row['id'])): ?>
           <?php $id = $row['id']; $name = $row['name'] ?? 'NULL'; ?>
 
           <li>
@@ -438,14 +456,14 @@ $result = $conn->query($query);
 <?php endif; ?>
 
         <!-- Audio Menu -->
-        <?php if(($userPerm >= 1)  && checkperm("1") == "true"): ?>
+        <?php if(($userPerm >= 1 ) && userHasAnyPluginAccess([1], $devices) ): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Audio <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <?php
             if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 1){
+                if ($row['pluginID'] == 1 && checkperm($row['id'])){
                   $id = $row['id']; 
                   $name = $row['name'] ?? 'NULL';
                   ?>
@@ -463,15 +481,15 @@ $result = $conn->query($query);
         </li>
         <?php endif; ?>
 
-        <!-- Audio Menu -->
-        <?php if(($userPerm >= 1)  && checkperm("3") == "true" || checkperm("10") == "true" ): ?>
+        <!-- Framesyncs Menu -->
+        <?php if(($userPerm >= 1) && userHasAnyPluginAccess([3,10,11], $devices) ): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Framesyncs <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <?php
             if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 3){
+                if ($row['pluginID'] == 3 && checkperm($row['id'])){
                   $id = $row['id']; 
                   $name = $row['name'] ?? 'NULL';
                   ?>
@@ -486,7 +504,7 @@ $result = $conn->query($query);
                 <?php
              if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 10){
+                if ($row['pluginID'] == 10 && checkperm($row['id'])){
                   $id = $row['id']; 
                   $name = $row['name'] ?? 'NULL';
                   ?>
@@ -497,20 +515,35 @@ $result = $conn->query($query);
                       <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/ajafs2/audio.php?id=<?php echo $id;?>"><?php echo $name;?> Audio Settings</a></li>
                     </ul>
                   </li>
-                <?php }}} ?>   
+                <?php }}} ?>  
+                             <?php
+             if ($result = $conn->query($query)) {
+              while ($row = $result->fetch_assoc()) {
+                if ($row['pluginID'] == 11){
+                  $id = $row['id']; 
+                  $name = $row['name'] ?? 'NULL';
+                  ?>
+                  <li class="dropdown-submenu">
+                    <a href="#"><i class="fa-solid fa-caret-left"></i></i> <?php echo $name;?></a>
+                    <ul class="dropdown-menu">
+                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/ajafs4/?id=<?php echo $id;?>"><?php echo $name;?> Video Settings</a></li>
+                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/ajafs4/audio.php?id=<?php echo $id;?>"><?php echo $name;?> Audio Settings</a></li>
+                    </ul>
+                  </li>
+                <?php }}} ?>  
           </ul> 
         </li>
         <?php endif; ?>
         
                 <!-- Monitor Menu -->
-        <?php if(($userPerm >= 1)  && checkperm("6") == "true"): ?>
+        <?php if(($userPerm >= 1) && userHasAnyPluginAccess([6], $devices)): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Monitors <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <?php
             if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 6){
+                if ($row['pluginID'] == 6 && checkperm($row['id'])){
                   $id = $row['id']; 
                   $name = $row['name'] ?? 'NULL';
                   ?>
@@ -520,15 +553,15 @@ $result = $conn->query($query);
           </ul> 
         </li>
         <?php endif; ?>
-        
-        <?php if(($userPerm >= 1)  && checkperm("9") == "true"): ?>
+        <!-- Encoders and cameras Menu -->
+        <?php if(($userPerm >= 1)&& userHasAnyPluginAccess([9], $devices) ): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Cameras & Encoders <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <?php
             if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 9){
+                if ($row['pluginID'] == 9 && checkperm($row['id'])){
                   $id = $row['id']; 
                   $name = $row['name'] ?? 'NULL';
                   ?>
@@ -539,51 +572,43 @@ $result = $conn->query($query);
         </li>
         <?php endif; ?>
         
-        <?php if(($userPerm >= 1)  && checkperm("4") == "true"): ?>
+        <?php if(($userPerm > 1)): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Tally<span class="caret"></span></a>
           
           
           <ul class="dropdown-menu">
           
-          <?php if(($userPerm > 2)  && checkperm("4") == "true"): ?>
+          <?php if(($userPerm > 2)): ?>
             <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/tally/">Master Tally Grid</a></li>
-            
+            <?php if(($userPerm > 3)): ?>
             <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/tally/device.php">Setup Devices</a></li>
             <?php endif; ?>
+             <?php endif; ?>
                   <li class="dropdown-submenu">
                     <a href="#"><i class="fa-solid fa-caret-left"></i></i>Device Tally Grid</a>
                     <ul class="dropdown-menu">
           <?php
             if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 4){
+                if ($row['pluginID'] == 4 && checkperm($row['id'])){
                   $id = $row['id']; 
                   $name = $row['name'] ?? 'NULL';
                   ?>
                   <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/tally/devicetallygrid.php?id=<?php echo $id;?>"><?php echo $name;?> Tally Grid</a></li>
-                <?php }}} ?>
-                
-                
-                    </ul>
-                    
-                    
+                <?php }}} ?>                               
+                    </ul>                                        
                   </li>
-          
-          
+        
             <?php
             if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {
-                if ($row['pluginID'] == 7){
+                if ($row['pluginID'] == 7 && checkperm($row['id'])){
                   $id = $row['id']; 
                   $name = $row['name'] ?? 'NULL';
                   ?>
                   <li><a href="Https://<?php echo $_SERVER['HTTP_HOST'];?>/aitally/?id=<?php echo $id;?>">AI Tally <?php echo $name;?></a></li>
                 <?php }}} ?>
-         
-        
-        
-
                    </ul> 
                   </li>
         <?php endif; ?>
@@ -597,8 +622,6 @@ $result = $conn->query($query);
           </ul> 
         </li>
         <?php endif; ?>
-        
-        
 
         <?php if($userPerm >= 5): ?>
         <li class="dropdown" id="first-link">

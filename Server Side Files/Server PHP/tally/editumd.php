@@ -6,7 +6,7 @@ if (!isset($_GET['id'])) {
 }
 session_start();
 if (!validateUserSession($conn, 1)) { showloggedout(); exit; }
-if (!validateUserSession($conn, 3, 4)) { showAccessDenied(); exit; }
+if (!validateUserSession($conn, 3)) { showAccessDenied(); exit; }
 
 $deviceId = intval($_GET['id']);
 

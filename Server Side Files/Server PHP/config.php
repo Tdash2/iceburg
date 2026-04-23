@@ -24,7 +24,7 @@ function validateUserSession($conn, $requiredPermission = null, $pluginID = null
     if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true || !isset($_SESSION['user_id'])) {
         return false;
     }
-
+    
     // Fetch latest user info including allowedPlugins
     $stmtt = $conn->prepare("SELECT id, UserPermissions, UserEmail, allowedPlugins FROM `Admin Users` WHERE id = ?");
     $stmtt->bind_param("i", $_SESSION['user_id']);

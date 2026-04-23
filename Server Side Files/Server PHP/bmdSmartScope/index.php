@@ -11,7 +11,7 @@ if (!validateUserSession($conn, 0)) {
     exit;
 }
 // Check permissions
-if (!validateUserSession($conn, 1, 6)) {
+if (!validateUserSession($conn, 1, $_GET['id'])) {
     showAccessDenied();
     exit;
 }
@@ -99,6 +99,12 @@ function bm_read(){
 
 /* ========= AJAX HANDLER ========= */
 if($_SERVER["REQUEST_METHOD"]==="POST"){
+
+if (!validateUserSession($conn, 2, $_GET['id'])) {
+    showAccessDenied();
+    exit;
+}
+
     $mon   = $_POST['monitor'];
     $param = $_POST['param'];
     $value = $_POST['value'];

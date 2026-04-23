@@ -9,7 +9,7 @@ if (!validateUserSession($conn, 1)) {
     showloggedout();
     exit;
 }
-if (!validateUserSession($conn, 1, 9)) {
+if (!validateUserSession($conn, 1, $_GET['id'])) {
     showAccessDenied();
     exit;
 }
@@ -152,6 +152,11 @@ $settings["sharpness"] = $imageData["data"]["sharpness"] ?? $settings["sharpness
 // HANDLE AUTO-UPDATE JSON POST
 // ======================
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+if (!validateUserSession($conn, 2, $_GET['id'])) {
+    showAccessDenied();
+    exit;
+}
     $input = json_decode(file_get_contents('php://input'), true);
 
     // EXPOSURE: shutter + gain

@@ -5,7 +5,7 @@ session_start();
 
 // Check permissions
 if (!validateUserSession($conn, 1)) { showloggedout(); exit; }
-if (!validateUserSession($conn, 1, 1)) { showAccessDenied(); exit; }
+if (!validateUserSession($conn, 1, $_GET['id'])) { showAccessDenied(); exit; }
 
 // ===== CONFIG =====
 $id = $_GET['id'];
@@ -147,6 +147,7 @@ function setName($ch,$n){
 
 // ===== AJAX HANDLER =====
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["ajax"])) {
+if (!validateUserSession($conn, 2, $_GET['id'])) { showAccessDenied(); exit; }
     $ch = (int)$_POST["ch"];
     if (isset($_POST["gain"])) {
         $fader = dbToFader(floatval($_POST["gain"]));

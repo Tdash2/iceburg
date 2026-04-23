@@ -44,7 +44,7 @@ if ($userResult) {
 }
 
 // --- Fetch devices for dropdown ---
-$devices = $conn->query("SELECT id, name FROM devices WHERE pluginID=2 ORDER BY name ASC");
+$devices2 = $conn->query("SELECT id, name FROM devices WHERE pluginID=2 ORDER BY name ASC");
 
 // --- Handle AJAX request to fetch inputs/outputs ---
 if (isset($_GET['action']) && $_GET['action'] === 'get_io' && isset($_GET['deviceID'])) {
@@ -138,7 +138,7 @@ button:hover { background-color:#16a085; }
     <div class="form-group">
         <label for="deviceID">Select Videohub Device</label>
         <select id="deviceID" name="deviceID" required>
-            <?php while($d = $devices->fetch_assoc()): ?>
+            <?php while($d = $devices2->fetch_assoc()): ?>
                 <option value="<?= $d['id'] ?>" <?= ($existing['deviceID']==$d['id'])?'selected':'' ?>><?= htmlspecialchars($d['name']) ?></option>
             <?php endwhile; ?>
         </select>

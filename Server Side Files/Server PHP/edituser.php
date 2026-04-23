@@ -35,7 +35,7 @@ if (!is_array($currentAllowedPlugins)) {
 
 // Fetch all plugins for selection list
 $pluginOptions = [];
-$result = $conn->query("SELECT id, pluginName FROM `deviceplugin` ORDER BY pluginName ASC");
+$result = $conn->query("SELECT id, name FROM `devices` ORDER BY id ASC");
 while ($row = $result->fetch_assoc()) {
     $pluginOptions[] = $row;
 }
@@ -128,17 +128,17 @@ body {
         <div class="form-group">
             <label for="permissions">User Permissions</label>
             <select class="form-control" id="permissions" name="permissions" required>
-                <option value="1" <?php if($permissions==1) echo 'selected'; ?>>1 - Viewer</option>
-                <option value="2" <?php if($permissions==2) echo 'selected'; ?>>2 - Restricted Editor</option>
-                <option value="3" <?php if($permissions==3) echo 'selected'; ?>>3 - Full Editor</option>
-                <option value="4" <?php if($permissions==4) echo 'selected'; ?>>4 - Manager</option>
-                <option value="5" <?php if($permissions==5) echo 'selected'; ?>>5 - Full Administrator</option>
+                <option value="1" <?php if($permissions==1) echo 'selected'; ?>>1 - Viewer (Can View All Devices Assigned To User)</option>
+                <option value="2" <?php if($permissions==2) echo 'selected'; ?>>2 - Restricted Editor (Can Edit All Devices Assigned To User)</option>
+                <option value="3" <?php if($permissions==3) echo 'selected'; ?>>3 - Full Editor (Can Edit All Devices On the Server)</option>
+                <option value="4" <?php if($permissions==4) echo 'selected'; ?>>4 - Manager (Can Add and Remove Devices)</option>
+                <option value="5" <?php if($permissions==5) echo 'selected'; ?>>5 - Full Administrator (Can Add and Remove Users)</option>
             </select>
         </div>
 
         <!-- Plugin Selection -->
         <div class="form-group">
-            <label>Allowed Plugins</label><br>
+            <label>Allowed Devices</label><br>
             <?php foreach ($pluginOptions as $plugin): ?>
                 <?php $pid = $plugin['id']; ?>
                 <div class="form-check form-check-inline">
@@ -150,7 +150,7 @@ body {
                            <?php if (in_array($pid, $currentAllowedPlugins)) echo 'checked'; ?>>
                            
                     <label class="form-check-label" for="plugin_<?php echo $pid; ?>">
-                        <?php echo htmlspecialchars($plugin['pluginName']); ?>
+                        <?php echo htmlspecialchars($plugin['name']); ?>
                     </label>
                 </div>
             <?php endforeach; ?>

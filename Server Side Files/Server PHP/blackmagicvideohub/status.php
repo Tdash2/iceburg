@@ -11,7 +11,7 @@ if (!validateUserSession($conn, 0)) {
     exit;
 }
 // Check permissions
-if (!validateUserSession($conn, 1, 2)) {
+if (!validateUserSession($conn, 1, $_GET['id'])) {
     showAccessDenied();
     exit;
 }

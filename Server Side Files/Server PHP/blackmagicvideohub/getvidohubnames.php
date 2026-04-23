@@ -9,7 +9,7 @@ if (!validateUserSession($conn, 0)) {
     echo json_encode(['error' => "User logged out."]);
     exit;
 }
-if (!validateUserSession($conn, 1, 2)) {
+if (!validateUserSession($conn, 1 )) {
     http_response_code(403);
     echo json_encode(['error' => "Access denied."]);
     exit;

@@ -5,7 +5,7 @@ session_start();
 
 
 if (!validateUserSession($conn, 1)) { showloggedout(); exit; }
-if (!validateUserSession($conn, 1, 4)) { showAccessDenied(); exit; }
+if (!validateUserSession($conn, 1)) { showAccessDenied(); exit; }
 
 
 
