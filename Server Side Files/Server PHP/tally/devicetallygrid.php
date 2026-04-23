@@ -12,10 +12,10 @@ if (!isset($_GET['id'])) {
 $deviceIdurl = intval($_GET['id']);
 
 /* ---------- DEVICES ---------- */
-$devices = [];
+$devices2 = [];
 $res = $conn->query("SELECT id, name FROM devices WHERE pluginID = 4 OR pluginID = 7 ORDER BY id");
 while ($row = $res->fetch_assoc()) {
-    $devices[] = $row;
+    $devices2[] = $row;
 }
 
 /* ---------- MAPPINGS ---------- */
@@ -47,7 +47,7 @@ while ($row = $res3->fetch_assoc()) {
 $inputGroups = [];
 $outputGroups = [];
 
-foreach ($devices as $d) {
+foreach ($devices2 as $d) {
 
     // ALL sources (inputs)
     if (!empty($inputChannels[$d['id']])) {
@@ -296,7 +296,7 @@ position: relative; /* keep for absolute positioning of corner */
 var INPUT_GROUPS = <?php echo json_encode($inputGroups); ?>;
 var OUTPUT_GROUPS = <?php echo json_encode($outputGroups); ?>;
 var MAPS = <?php echo json_encode($mapLookup); ?>;
-var DEVICES = <?php echo json_encode(array_column($devices,'id')); ?>;
+var DEVICES = <?php echo json_encode(array_column($devices2,'id')); ?>;
 </script>
 
 <script>

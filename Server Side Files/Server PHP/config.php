@@ -60,7 +60,7 @@ $userPerm = $userPermissions;
     if ($pluginID !== null) {
 
         // Admins automatically bypass plugin restrictions
-        if ($userPermissions >= 4) {
+        if ($userPermissions >= 3) {
             return true;
         }
 

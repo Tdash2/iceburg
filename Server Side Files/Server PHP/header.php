@@ -22,7 +22,7 @@ if (isset($_SESSION['loggedin'], $_SESSION['user_id']) && $_SESSION['loggedin'] 
 
 // Check plugin permission
 function checkperm($id){
-  if ($_SESSION['user_permissions'] >= 4){
+  if ($_SESSION['user_permissions'] >= 3){
   return true;
   }else{
 
@@ -106,11 +106,17 @@ while ($row = $resultdddwdd->fetch_assoc()) {
 
 
 function userHasAnyPluginAccess(array $pluginIDs, array $devices): bool {
+  
     foreach ($devices as $device) {
         if (in_array($device['pluginID'], $pluginIDs)) {
+        if ($_SESSION['user_permissions'] >= 3){
+  return true;
+  }else{
             return true;
+            }
         }
     }
+    
     return false;
 }
 
@@ -572,7 +578,7 @@ $result = $conn->query($query);
         </li>
         <?php endif; ?>
         
-        <?php if(($userPerm > 1)): ?>
+        <?php if(($userPerm > 1) && userHasAnyPluginAccess([4,7], $devices)): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Tally<span class="caret"></span></a>
           
