@@ -138,9 +138,30 @@ $stmt->close();
 <script src="/depends/bootstrap.min.js"></script>
 <link rel="stylesheet" href="/depends/fontawesome/css/all.min.css">
 
+<script src="/depends/dist/kioskboard-aio-2.3.0.min.js"></script>
+<?php if(($_SESSION['UserEmail']  == "frontPanel")): ?>
+<script>
+KioskBoard.init({
+  keysJsonUrl: "/depends/dist/kioskboard-keys.json",
+  theme: "light"
+});
+</script>
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
 
+  // Add required attributes to ALL inputs automatically
+  document.querySelectorAll('input, textarea').forEach(el => {
+    el.setAttribute("data-kioskboard-type", "keyboard");
+    el.setAttribute("data-kioskboard-placement", "bottom");
+  });
 
+  // Now activate KioskBoard
+  KioskBoard.run('input, textarea');
+
+});
+</script>
+<?php endif; ?>
 <style>
 /* Header background and text */
 #scanfcode {
