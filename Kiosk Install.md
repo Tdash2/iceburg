@@ -87,7 +87,8 @@ exec chromium-browser \
   --no-sandbox \
   --disable-gpu \
   --touch-events=enabled \
-  http://locahost/```
+  http://locahost/
+```
 
 chmod +x /home/iceburg/kiosk/start.sh
 sudo nano /etc/systemd/system/kiosk.service
