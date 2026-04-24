@@ -40,8 +40,8 @@ CREATE TABLE `Admin Users` (
 --
 
 INSERT INTO `Admin Users` (`UserEmail`, `UserPassword`, `UserPermissions`, `id`, `allowedPlugins`) VALUES
-('admin', '$2y$10$aYyi/ztJI41GZD7s90rYLOenHCXJLW3CIWuar4LHa3mPJDASQMQLK', '5', 16, '[\"2\",\"1\"]'),
-('frontPanel', '$2y$10$EqHt8rAgWcEctQw8ux43SuZNIzHuTojqvE9UY3MIG9zV2lBC/dX.e', '5', 24, '[]');
+('admin', '$2y$10$aYyi/ztJI41GZD7s90rYLOenHCXJLW3CIWuar4LHa3mPJDASQMQLK', '5', 1, '[]'),
+('frontPanel', '$2y$10$EqHt8rAgWcEctQw8ux43SuZNIzHuTojqvE9UY3MIG9zV2lBC/dX.e', '5', 2, '[]');
 
 -- --------------------------------------------------------
 
