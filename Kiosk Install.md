@@ -93,7 +93,8 @@ chmod +x /home/iceburg/kiosk/start.sh
 sudo nano /etc/systemd/system/kiosk.service
 
 kiosk.service
-```[Unit]
+```
+[Unit]
 Description=Kiosk
 After=systemd-logind.service
 
