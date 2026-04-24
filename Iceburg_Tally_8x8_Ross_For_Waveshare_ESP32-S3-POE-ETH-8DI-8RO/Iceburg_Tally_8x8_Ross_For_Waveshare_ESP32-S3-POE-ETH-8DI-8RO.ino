@@ -133,7 +133,7 @@ bool connectToServer(EthernetClient &c)
 {
   if(c.connect(primaryHost, serverPort))
   {
-    logConsole("Connected PRIMARY");
+    //logConsole("Connected PRIMARY");
     return true;
   }
 
@@ -515,7 +515,7 @@ void loop()
   handleWeb();
   readRoss();
 
-  if(millis()-lastPoll > 100)
+  if(millis()-lastPoll > 150)
   {
     lastPoll = millis();
     sendToServer();
