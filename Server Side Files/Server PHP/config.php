@@ -78,7 +78,7 @@ $userPerm = $userPermissions;
 function showloggedout() {
     // Get the current full URL
     $currentUrl = $_SERVER['REQUEST_URI'];
-    $redirectUrl = "index.php?redirect=" . urlencode($currentUrl);
+    $redirectUrl = "/index.php?redirect=" . urlencode($currentUrl);
     ?>
     <!DOCTYPE html>
     <html lang="en">
@@ -119,6 +119,8 @@ function showloggedout() {
     </body>
     </html>
     <?php
+    header("Location: ".htmlspecialchars($redirectUrl));
+
     exit;
 }
 
