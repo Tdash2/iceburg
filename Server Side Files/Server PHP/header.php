@@ -271,6 +271,21 @@ document.addEventListener("DOMContentLoaded", function () {
 </style>
 
 <script>
+
+$('.dropdown-toggle').on('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    var parent = $(this).parent();
+
+    // Toggle manually
+    $('.dropdown').not(parent).removeClass('open');
+    parent.toggleClass('open');
+});
+$('.dropdown-menu').on('click', function (e) {
+    e.stopPropagation();
+});
+
 function adjustSubmenuDirection(submenu) {
     var menu = submenu.children('.dropdown-menu');
 
@@ -309,16 +324,23 @@ $('.dropdown-submenu').hover(
     );
 
     // Handle click for submenu (for mobile)
-    $('.dropdown-submenu > a').on('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var submenu = $(this).next('.dropdown-menu');
+ $('.dropdown-submenu > a').on('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
 
-        // Toggle the submenu
-        $('.dropdown-submenu .dropdown-menu').not(submenu).slideUp(150);
-        submenu.slideToggle(150);
-    });
+    var submenu = $(this).next('.dropdown-menu');
 
+    // If already open ? do nothing (prevents closing on second tap)
+    if (submenu.is(':visible')) {
+        return;
+    }
+
+    // Close others
+    $('.dropdown-submenu .dropdown-menu').not(submenu).slideUp(150);
+
+    // Open this one ONLY
+    submenu.slideDown(150);
+});
     // Prevent dropdown from closing when clicking inside submenu
     $('.dropdown-submenu .dropdown-menu').on('click', function (e) {
         e.stopPropagation();
