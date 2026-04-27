@@ -8,10 +8,10 @@ if (!validateUserSession($conn, 1, $_GET['id'])) { showAccessDenied(); exit; }
 $id = $_GET['id'] ?? 0;
 $id2 = $_GET['id'] ?? 0;
 
-$stmt = $conn->prepare("SELECT ip, name FROM `devices` WHERE pluginID = 11 AND id=?");
+$stmt = $conn->prepare("SELECT ip, name,madisorce FROM `devices` WHERE pluginID = 11 AND id=?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
-$stmt->bind_result($FS2_IP, $name2);
+$stmt->bind_result($FS2_IP, $name2, $madisorce);
 if (!$stmt->fetch()) { echo "No Device Found"; exit; }
 $stmt->close();
 
@@ -379,13 +379,13 @@ let pollInterval = null;
 
 // -----------------------------
 // INIT
-// -----------------------------
+// -----------------------------$madisorce
 function init() {
     fetch("?id=<?php echo $id2; ?>&api=init")
         .then(r => r.json())
         .then(data => {
             config = data;
-            return fetch("/x32/getallnames.php?id=117");
+            return fetch("/x32/getallnames.php?id=<?php echo $madisorce; ?>");
         })
         .then(r => r.json())
         .then(data => {
