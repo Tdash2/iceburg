@@ -63,7 +63,7 @@ if (filter_var(
     FILTER_VALIDATE_IP,
     FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6
 )) {
-    if ($ip === '127.0.0.1' || $ip === '::1') {
+    if (in_array($ip, $localloginip)) {
     $username = "frontPanel";
     $password = "frontPanel";
     $redirect = $_POST["redirect"] ?? 'home.php';

@@ -1,12 +1,19 @@
 
-
-
 <?php
-
+//Database Settings
 $servername = "localhost";
 $username = "iceburg";
 $password = "jfu5itjfitiejit5kfsfdgfdge8t43w";
 $dbname = "iceburg";
+
+//Auto Login IP. Any ip in this array will automaticaly be loged in with the username frontPanel and password frontPanel. This is usefull for a kiok. 
+$localloginip = ["127.0.0.1", "10.176.71.113"];
+
+
+
+
+
+
 
 $serverurl= $_SERVER['HTTP_HOST'] ?? '';
 
