@@ -24,70 +24,43 @@ boot script /home/iceburg/kiosk/start.sh
 export DISPLAY=:0
 export XAUTHORITY=/home/iceburg/.Xauthority
 
-# ----------------------------
-# POWER / SCREEN SETTINGS
-# ----------------------------
+exec >/tmp/kiosk.log 2>&1
+set -x
+
+# Wait for X
+until xset q >/dev/null 2>&1; do
+    sleep 1
+done
+
 xset s off
 xset s noblank
 xset -dpms
 
-# ----------------------------
-# START WINDOW MANAGER
-# ----------------------------
 openbox-session &
-sleep 3
+sleep 2
 
-# ----------------------------
-# WAIT FOR TOUCH DEVICE
-# ----------------------------
-for i in {1..30}; do
-    xinput list | grep -iq "Goodix" && break
+# Wait for touchscreen
+for t in {1..30}; do
+    TOUCH_ID=$(xinput list --id-only "Goodix Capacitive TouchScreen" 2>/dev/null)
+    [ -n "$TOUCH_ID" ] && break
     sleep 1
 done
 
-# ----------------------------
-# TOUCH ROTATION (ROBUST)
-# ----------------------------
-for id in $(xinput list | grep -i "Goodix Capacitive TouchScreen" | grep -o 'id=[0-9]*' | cut -d= -f2); do
-    for i in {1..10}; do
-        xinput set-prop "$id" \
-        "Coordinate Transformation Matrix" \
-        0 1 0 -1 0 1 0 0 1 && break
-        sleep 1
-    done
-done
+if [ -n "$TOUCH_ID" ]; then
+    xinput set-prop "$TOUCH_ID" \
+      "Coordinate Transformation Matrix" \
+      0 1 0 -1 0 1 0 0 1
+fi
 
-# ----------------------------
-# ON-SCREEN KEYBOARD
-# ----------------------------
+x11vnc -display :0 -auth guess -forever -shared &
 
-
-# wait for keyboard window then force it on top
-sleep 2
-wmctrl -r "matchbox-keyboard" -b add,above
-wmctrl -r "matchbox-keyboard" -b add,sticky
-
-# ----------------------------
-# VNC SERVER
-# ----------------------------
-x11vnc \
-  -display :0 \
-  -auth /home/iceburg/.Xauthority \
-  -forever \
-  -shared \
-  -rfbport 5900 &
-
-# ----------------------------
-# CHROMIUM KIOSK MODE
-# ----------------------------
 exec chromium-browser \
   --kiosk \
   --no-first-run \
   --disable-infobars \
   --no-sandbox \
   --disable-gpu \
-  --touch-events=enabled \
-  http://locahost/
+  http://localhost
 ```
 
 chmod +x /home/iceburg/kiosk/start.sh
@@ -108,7 +81,7 @@ TTYVHangup=yes
 TTYVTDisallocate=yes
 StandardInput=tty
 StandardOutput=journal
-ExecStart=/usr/bin/startx /home/iceburg/kiosk/start.sh -- vt1
+ExecStart=/usr/bin/startx /home/iceburg/kiosk/start.sh
 Restart=always
 KillMode=control-group
 SendSIGKILL=yes
@@ -117,6 +90,7 @@ TimeoutStopSec=5
 
 [Install]
 WantedBy=multi-user.target
+
 ```
 sudo systemctl daemon-reload
 
@@ -173,11 +147,9 @@ Upload /server Side Files/Server PHP/ Here
 
 sudo mkdir -p /etc/nginx/ssl
 
-sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-  -keyout /etc/nginx/ssl/iceburg.key \
-  -out /etc/nginx/ssl/iceburg.crt
+sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \ -keyout /etc/nginx/ssl/iceburg.key \ -out /etc/nginx/ssl/iceburg.crt
 
- sudo nano /etc/nginx/sites-enabled/iceburg.config
+sudo nano /etc/nginx/sites-enabled/iceburg.config
 
 ```
 server {
