@@ -37,21 +37,19 @@ xset s noblank
 xset -dpms
 
 openbox-session &
-sleep 2
+sleep 10
 
-# Wait for touchscreen
-for t in {1..30}; do
-    TOUCH_ID=$(xinput list --id-only "Goodix Capacitive TouchScreen" 2>/dev/null)
-    [ -n "$TOUCH_ID" ] && break
-    sleep 1
+# ----------------------------
+# TOUCH ROTATION (ROBUST)
+# ----------------------------
+for id in $(xinput list | grep -i "Goodix Capacitive TouchScreen" | grep -o 'id=[0-9]*' | cut -d= -f2); do
+    for i in {1..10}; do
+        xinput set-prop "$id" \
+        "Coordinate Transformation Matrix" \
+        0 1 0 -1 0 1 0 0 1 && break
+        sleep 1
+    done
 done
-
-if [ -n "$TOUCH_ID" ]; then
-    xinput set-prop "$TOUCH_ID" \
-      "Coordinate Transformation Matrix" \
-      0 1 0 -1 0 1 0 0 1
-fi
-
 x11vnc -display :0 -auth guess -forever -shared &
 
 exec chromium-browser \
@@ -81,7 +79,7 @@ TTYVHangup=yes
 TTYVTDisallocate=yes
 StandardInput=tty
 StandardOutput=journal
-ExecStart=/usr/bin/startx /home/iceburg/kiosk/start.sh
+ExecStart=/usr/bin/startx /home/iceburg/kiosk/start.sh -- vt1
 Restart=always
 KillMode=control-group
 SendSIGKILL=yes
