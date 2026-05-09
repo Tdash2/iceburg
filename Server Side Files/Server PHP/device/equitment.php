@@ -7,7 +7,7 @@ if (!validateUserSession($conn, 1)) {
     exit;
 }
 
-if (!validateUserSession($conn, 3)) {
+if (!validateUserSession($conn, 4)) {
     showAccessDenied();
     exit;
 }

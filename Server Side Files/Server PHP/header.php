@@ -672,7 +672,7 @@ $result = $conn->query($query);
                   </li>
         <?php endif; ?>
 
-        <?php if($userPerm >= 3): ?>
+        <?php if($userPerm >= 4): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Equipment<span class="caret"></span></a>
           <ul class="dropdown-menu">

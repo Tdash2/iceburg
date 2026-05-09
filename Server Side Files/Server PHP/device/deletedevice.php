@@ -4,7 +4,7 @@
 include "../config.php";
 session_start();
 
-if (!validateUserSession($conn, 3)) { // 2 = required permission level
+if (!validateUserSession($conn, 4)) { // 2 = required permission level
     showAccessDenied();
     exit;
 }

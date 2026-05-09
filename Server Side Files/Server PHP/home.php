@@ -202,8 +202,8 @@ async function loadDivAsync(div) {
     }
     timeDiv.textContent = hasError
 
-        ? 'Error Connecting To Device At: ' + new Date().toLocaleString()
-        : 'Connected at: ' + new Date().toLocaleString();
+        ? 'Error Connecting To Device '
+        : '';
 
     div.insertAdjacentElement('afterbegin', timeDiv);
 }
