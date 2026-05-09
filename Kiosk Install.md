@@ -24,26 +24,20 @@ boot script /home/iceburg/kiosk/start.sh
 export DISPLAY=:0
 export XAUTHORITY=/home/iceburg/.Xauthority
 
-# ----------------------------
-# POWER / SCREEN SETTINGS
-# ----------------------------
+exec >/tmp/kiosk.log 2>&1
+set -x
+
+# Wait for X
+until xset q >/dev/null 2>&1; do
+    sleep 1
+done
+
 xset s off
 xset s noblank
 xset -dpms
 
-# ----------------------------
-# START WINDOW MANAGER
-# ----------------------------
 openbox-session &
-sleep 3
-
-# ----------------------------
-# WAIT FOR TOUCH DEVICE
-# ----------------------------
-for i in {1..30}; do
-    xinput list | grep -iq "Goodix" && break
-    sleep 1
-done
+sleep 10
 
 # ----------------------------
 # TOUCH ROTATION (ROBUST)
@@ -56,38 +50,15 @@ for id in $(xinput list | grep -i "Goodix Capacitive TouchScreen" | grep -o 'id=
         sleep 1
     done
 done
+x11vnc -display :0 -auth guess -forever -shared &
 
-# ----------------------------
-# ON-SCREEN KEYBOARD
-# ----------------------------
-
-
-# wait for keyboard window then force it on top
-sleep 2
-wmctrl -r "matchbox-keyboard" -b add,above
-wmctrl -r "matchbox-keyboard" -b add,sticky
-
-# ----------------------------
-# VNC SERVER
-# ----------------------------
-x11vnc \
-  -display :0 \
-  -auth /home/iceburg/.Xauthority \
-  -forever \
-  -shared \
-  -rfbport 5900 &
-
-# ----------------------------
-# CHROMIUM KIOSK MODE
-# ----------------------------
 exec chromium-browser \
   --kiosk \
   --no-first-run \
   --disable-infobars \
   --no-sandbox \
   --disable-gpu \
-  --touch-events=enabled \
-  http://locahost/
+  http://localhost
 ```
 
 chmod +x /home/iceburg/kiosk/start.sh
@@ -117,6 +88,7 @@ TimeoutStopSec=5
 
 [Install]
 WantedBy=multi-user.target
+
 ```
 sudo systemctl daemon-reload
 
@@ -173,11 +145,9 @@ Upload /server Side Files/Server PHP/ Here
 
 sudo mkdir -p /etc/nginx/ssl
 
-sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
-  -keyout /etc/nginx/ssl/iceburg.key \
-  -out /etc/nginx/ssl/iceburg.crt
+sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \ -keyout /etc/nginx/ssl/iceburg.key \ -out /etc/nginx/ssl/iceburg.crt
 
- sudo nano /etc/nginx/sites-enabled/iceburg.config
+sudo nano /etc/nginx/sites-enabled/iceburg.config
 
 ```
 server {
