@@ -484,7 +484,7 @@ $result = $conn->query($query);
     <!-- ===================== -->
     <!-- PLUGIN 8 -->
     <!-- ===================== -->
-    <?php if ($userPerm >= 1 && checkperm("8") == "true" && $result): ?>
+    <?php if ($userPerm >= 1  && $result): ?>
      <?php $result = $conn->query($query);?>
       <?php while ($row = $result->fetch_assoc()): ?>
         <?php if ($row['pluginID'] == 8 && checkperm($row['id'])): ?>

@@ -249,6 +249,7 @@ async function refreshLabels(){
     } finally {
         document.getElementById('refresh').disabled = false;
     }
+    
 }
 
 function markChanged(input){

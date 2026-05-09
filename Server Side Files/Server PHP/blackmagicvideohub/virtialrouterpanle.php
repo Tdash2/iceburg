@@ -192,9 +192,10 @@ p { color: #ccc; }
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(5, 100px); /* matches button width */
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 12px;
     justify-content: center;
+        width: min(45vw, 1200px);
 }
 
 .btn {
@@ -227,7 +228,7 @@ p { color: #ccc; }
 .btn.routed { border-color: #f1c40f; background-color: #1a1a1a; }
 
 #inputsGrid, #outputsGrid {
-    max-height: 500px;
+    
     overflow-y: auto;
     padding-right: 4px;
 }
