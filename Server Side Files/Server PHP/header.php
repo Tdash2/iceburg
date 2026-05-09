@@ -170,6 +170,16 @@ document.addEventListener("DOMContentLoaded", function () {
   border-radius: 0;
   padding: 10px 20px;
   font-family: 'Encode Sans', sans-serif;
+  
+    /* ADD THESE */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 9999;
+}
+body {
+  padding-top: 80px; /* adjust to navbar height */
 }
 
 /* Logo */

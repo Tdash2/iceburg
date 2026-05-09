@@ -237,6 +237,7 @@ body { font-family: Arial; background:#333; color:#eee; }
 }
 
 .subgroup {
+    flex: 1;
     min-width: 280px;
     border: 1px solid #333;
     border-radius: 8px;
@@ -262,8 +263,8 @@ body { font-family: Arial; background:#333; color:#eee; }
 
 .row { margin: 10px 0; }
 
-input[type=range] { width: 240px; }
-select { width: 240px; }
+input[type=range] { min-width: 100%;}
+select { min-width: 100%; }
 button { margin-left:10px; }
 h2{color:#4db2ff!important;}
 </style>
