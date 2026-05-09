@@ -94,7 +94,7 @@ h2{padding:8px;margin:0;}
 /* Make the scrollable container the sticky reference */
 .grid-container {
     width: 95%;
-    height: 85%; /* full viewport minus header height */
+    height: 83%; /* full viewport minus header height */
     overflow-x: auto;  /* horizontal scroll */
     overflow-y: auto;  /* vertical scroll inside the grid only */
     background: #232323;
