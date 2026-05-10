@@ -1,125 +1,72 @@
 sudo apt update
 
-sudo apt install --no-install-recommends xorg openbox chromium-browser
-
-sudo apt install xterm
-
-sudo usermod -aG tty iceburg
-
-sudo usermod -aG video iceburg
-
-sudo apt update
-
+sudo apt install --no-install-recommends \ xserver-xorg \ x11-xserver-utils \ xinit \ openbox \ chromium-browser \ unclutter \ watchdog \ -y
+  
 sudo apt install x11vnc
 
-mkdir -p /home/iceburg/kiosk
+sudo apt install chromium -y
 
-nano /home/iceburg/kiosk/start.sh
+sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
 
-boot script /home/iceburg/kiosk/start.sh 
+sudo nano /etc/systemd/system/getty@tty1.service.d/override.conf
 
+```
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin iceburg --noclear %I $TERM
+```
+
+sudo systemctl daemon-reload
+
+nano ~/kiosk.sh
 ```
 #!/bin/bash
 
-export DISPLAY=:0
-export XAUTHORITY=/home/iceburg/.Xauthority
-
-exec >/tmp/kiosk.log 2>&1
-set -x
-
-# Wait for X
-until xset q >/dev/null 2>&1; do
-    sleep 1
-done
-
+xset -dpms
 xset s off
 xset s noblank
-xset -dpms
 
-openbox-session &
-sleep 10
-
-# ----------------------------
-# TOUCH ROTATION (ROBUST)
-# ----------------------------
-for id in $(xinput list | grep -i "Goodix Capacitive TouchScreen" | grep -o 'id=[0-9]*' | cut -d= -f2); do
-    for i in {1..10}; do
-        xinput set-prop "$id" \
-        "Coordinate Transformation Matrix" \
-        0 1 0 -1 0 1 0 0 1 && break
-        sleep 1
-    done
-done
+unclutter -idle 0.5 &
 x11vnc -display :0 -auth guess -forever -shared &
 
-exec chromium-browser \
-  --kiosk \
-  --no-first-run \
-  --disable-infobars \
-  --no-sandbox \
-  --disable-gpu \
-  http://localhost
-```
+while true; do
+    chromium-browser \
+        --kiosk \
+        --noerrdialogs \
+        --disable-infobars \
+        --disable-session-crashed-bubble \
+        --check-for-update-interval=31536000 \
+        --disable-pinch \
+        --overscroll-history-navigation=0 \
+        --autoplay-policy=no-user-gesture-required \
+        http://localhost
 
-chmod +x /home/iceburg/kiosk/start.sh
-sudo nano /etc/systemd/system/kiosk.service
-
-kiosk.service
-```
-[Unit]
-Description=Kiosk
-After=systemd-logind.service
-
-[Service]
-User=iceburg
-PAMName=login
-TTYPath=/dev/tty1
-TTYReset=yes
-TTYVHangup=yes
-TTYVTDisallocate=yes
-StandardInput=tty
-StandardOutput=journal
-ExecStart=/usr/bin/startx /home/iceburg/kiosk/start.sh -- vt1
-Restart=always
-KillMode=control-group
-SendSIGKILL=yes
-TimeoutStopSec=5
-
-
-[Install]
-WantedBy=multi-user.target
+    echo "Chromium crashed. Restarting in 5 seconds..."
+    sleep 5
+done
 
 ```
-sudo systemctl daemon-reload
+chmod +x ~/kiosk.sh
 
-sudo systemctl enable kiosk
-
-sudo nano /etc/default/grub
+nano ~/.bash_profile
 
 ```
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash fbcon=rotate:1 video=efifb:rotate=1"
+if [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]]; then
+  startx
+fi
 ```
 
-sudo update-grub
-
-sudo nano /etc/X11/xorg.conf.d/10-monitor.conf
+mkdir -p ~/.config/openbox
+nano ~/.config/openbox/autostart
 
 ```
-Section "Monitor"
-    Identifier "Monitor0"
-    Option "Rotate" "right"
-EndSection
+~/kiosk.sh &
+```
 
-Section "Device"
-    Identifier "Device0"
-    Driver "modesetting"
-EndSection
+nano ~/.xinitrc
 
-Section "Screen"
-    Identifier "Screen0"
-    Device "Device0"
-    Monitor "Monitor0"
-EndSection
+```
+exec openbox-session
 ```
 
 sudo apt -y install php8.3 php8.3-{common,cli,gd,mysql,mbstring,bcmath,xml,fpm,curl,zip} mariadb-server nginx tar unzip
