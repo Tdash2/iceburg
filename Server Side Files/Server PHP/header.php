@@ -8,10 +8,10 @@ $userPerm = 0;
 $allowedPluginsJson = "";
 
 if (isset($_SESSION['loggedin'], $_SESSION['user_id']) && $_SESSION['loggedin'] === true) {
-    $stmt = $conn->prepare("SELECT UserPermissions, allowedPlugins FROM `Admin Users` WHERE id = ?");
+    $stmt = $conn->prepare("SELECT UserPermissions, allowedPlugins,useCoustomNav,NavElements FROM `Admin Users` WHERE id = ?");
     $stmt->bind_param("i", $_SESSION['user_id']);
     $stmt->execute();
-    $stmt->bind_result($userPermFromDb, $allowedPluginsJsonn);
+    $stmt->bind_result($userPermFromDb, $allowedPluginsJsonn,$useCoustomNav,$NavElements);
     if ($stmt->fetch()) {
         $userPerm = $userPermFromDb;
         $allowedPluginsJson = $allowedPluginsJsonn;
@@ -396,6 +396,63 @@ $hasVirtualPanels = !empty($allPanels);
 
 $result = $conn->query($query);
 ?>
+<?php if ($useCoustomNav == 1 ): ?>
+
+    <?php
+        $navItems = json_decode($NavElements, true);
+
+        if (!empty($navItems)) :
+            foreach ($navItems as $item) :
+
+                $path = $item['path'];
+                $name = $item['label'];
+                $deviceId = $item['device_id'];
+
+                $url = "http://" . $_SERVER['HTTP_HOST'] . "/" . $path ;
+    ?>
+
+        <li>
+            <a href="<?php echo htmlspecialchars($url); ?>">
+                <?php echo htmlspecialchars($name); ?>
+            </a>
+        </li>
+
+    <?php
+            endforeach;
+        endif;
+    ?>
+    <?php if($userPerm >= 5): ?>
+        <li class="dropdown" id="first-link">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Users<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/addnewuser.php">Add A new User</a></li>
+            <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/viewusers.php">View Users</a></li>
+          </ul> 
+        </li>
+        <?php endif; ?>
+
+        <!-- User Menu -->
+        <?php if($userPerm >= 1 && (!($_SESSION['UserEmail']  == "frontPanel"))): ?>
+        <li class="dropdown" id="first-link">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#"><?php echo $_SESSION['UserEmail']; ?><span class="caret"></span></a>
+          <ul class="dropdown-menu">
+          
+         
+            <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/changepassword.php">Change Password</a></li>
+           
+             <!--<li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/about.php">About Iceburg</a></li>-->
+
+            <li><a href='Http://<?php echo $_SERVER['HTTP_HOST'];?>/logout.php?url=<?php echo $redirectUrl; ?>'>Logout</a></li> 
+          </ul> 
+        </li>
+        <?php endif; ?>
+
+<?php endif; ?>
+
+
+
+<?php if (!$useCoustomNav == 1 ): ?>
+
 
 <?php if ($userPerm >= 1 && ($hasVirtualPanels || userHasAnyPluginAccess([2,5,8], $devices))): ?>
 <li class="dropdown" id="first-link">
@@ -707,7 +764,7 @@ $result = $conn->query($query);
           </ul> 
         </li>
         <?php endif; ?>
-
+<?php endif; ?>
       </ul>
     </div>
   </div>

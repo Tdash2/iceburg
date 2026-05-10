@@ -8,11 +8,124 @@ $username = "iceburg";
 $password = "jfu5itjfitiejit5kfsfdgfdge8t43w";
 $dbname = "iceburg";
 
-$serverurl= $_SERVER['HTTP_HOST'] ?? '';
+
 //Auto Login IP. Any ip in this array will automaticaly be loged in with the username frontPanel and password frontPanel. This is usefull for a kiok. 
 $localloginip = ["127.0.0.1", "10.176.71.113"];
 
 
+//All options for coustom nav bar
+$customNavOptions = [
+
+    "1" => [
+
+        [
+            "name" => "Bus Mix",
+            "path" => "x32/bus.php?id={id}"
+        ],
+        [
+            "name" => "Input Configurations",
+            "path" => "x32/inputs.php?id={id}"
+        ],
+        [
+            "name" => "Main Mix",
+            "path" => "x32/mainmix.php?id={id}"
+        ]
+    ],
+    "2" => [
+
+        [
+            "name" => "Input Names",
+            "path" => "blackmagicvideohub/bmdrouterinputnames.php?id={id}"
+        ],
+        [
+            "name" => "Output Names",
+            "path" => "blackmagicvideohub/bmdrouteroutputnames.php?id={id}"
+        ],
+        [
+            "name" => "Router Routes",
+            "path" => "blackmagicvideohub/bmdrouterroutes.php?id={id}"
+        ]
+    ],
+        "3" => [
+
+        [
+            "name" => "Audio Routing",
+            "path" => "9905-mpx/index.php?id={id}"
+        ],
+        [
+            "name" => "Input Selection",
+            "path" => "9905-mpx/inputselect.php?id={id}"
+        ]
+    ],
+        "4" => [
+
+        [
+            "name" => "Device Tally Grid",
+            "path" => "tally/devicetallygrid.php?id={id}"
+        ]
+    ],
+        "5" => [
+
+        [
+            "name" => "Button Mapping",
+            "path" => "blackmagicrouterpanel/index.php?id={id}"
+        ]
+    ],
+        "6" => [
+
+        [
+            "name" => "Settings",
+            "path" => "bmdSmartScope/index.php?id={id}"
+        ]
+    ],
+        "7" => [
+
+        [
+            "name" => "Launtch Client",
+            "path" => "aitally/?id={id}"
+        ]
+    ],
+        "8" => [
+
+        [
+            "name" => "Button Mapping",
+            "path" => "48blackmagicrouterpanel/?id={id}"
+        ]
+    ],
+        "9" => [
+
+        [
+            "name" => "Settings",
+            "path" => "zowietekpov/?id={id}"
+        ]
+    ],
+        "10" => [
+
+        [
+            "name" => "Video Settings",
+            "path" => "ajafs2/?id={id}"
+        ],
+        [
+            "name" => "Audio Settings",
+            "path" => "ajafs2/audio.php?id={id}"
+        ]
+    ],
+        "11" => [
+
+        [
+            "name" => "Video Settings",
+            "path" => "ajafs4/?id={id}"
+        ],
+        [
+            "name" => "Audio Settings",
+            "path" => "ajafs4/audio.php?id={id}"
+        ]
+    ]
+];
+
+
+
+$serverurl= $_SERVER['HTTP_HOST'] ?? '';
 $host = $_SERVER['HTTP_HOST'] ?? '';
 
 $conn = new mysqli($servername, $username, $password, $dbname);

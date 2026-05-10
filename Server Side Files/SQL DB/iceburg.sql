@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1deb3
+-- version 5.2.2deb2
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Apr 10, 2026 at 06:57 PM
--- Server version: 10.11.14-MariaDB-0ubuntu0.24.04.1
--- PHP Version: 8.3.6
+-- Generation Time: May 10, 2026 at 12:38 AM
+-- Server version: 11.8.3-MariaDB-1build1 from Ubuntu
+-- PHP Version: 8.4.11
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -32,16 +32,18 @@ CREATE TABLE `Admin Users` (
   `UserPassword` text NOT NULL,
   `UserPermissions` text NOT NULL,
   `id` int(11) NOT NULL,
-  `allowedPlugins` text NOT NULL
+  `allowedPlugins` text NOT NULL,
+  `useCoustomNav` tinyint(1) NOT NULL DEFAULT 0,
+  `NavElements` text NOT NULL DEFAULT '[]'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `Admin Users`
 --
 
-INSERT INTO `Admin Users` (`UserEmail`, `UserPassword`, `UserPermissions`, `id`, `allowedPlugins`) VALUES
-('admin', '$2y$10$aYyi/ztJI41GZD7s90rYLOenHCXJLW3CIWuar4LHa3mPJDASQMQLK', '5', 1, '[]'),
-('frontPanel', '$2y$10$EqHt8rAgWcEctQw8ux43SuZNIzHuTojqvE9UY3MIG9zV2lBC/dX.e', '5', 2, '[]');
+INSERT INTO `Admin Users` (`UserEmail`, `UserPassword`, `UserPermissions`, `id`, `allowedPlugins`, `useCoustomNav`, `NavElements`) VALUES
+('admin', '$2y$10$aYyi/ztJI41GZD7s90rYLOenHCXJLW3CIWuar4LHa3mPJDASQMQLK', '5', 1, '[]', 0, '[]'),
+('frontPanel', '$2y$12$FFlvyfU3N.W0ssMZZ.er7OfLKr5JZtMbXMUa62mv82BycC7v0Hk0W', '5', 2, '[]', 0, '[]');
 
 -- --------------------------------------------------------
 
@@ -202,7 +204,7 @@ ALTER TABLE `tally_mappings`
 -- AUTO_INCREMENT for table `Admin Users`
 --
 ALTER TABLE `Admin Users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `auditlogs`
@@ -214,7 +216,7 @@ ALTER TABLE `auditlogs`
 -- AUTO_INCREMENT for table `deviceplugin`
 --
 ALTER TABLE `deviceplugin`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `devices`
