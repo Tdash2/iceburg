@@ -149,7 +149,8 @@ if (!magewellLogin(
     $cookieFile
 )) {
 
-    die("Failed to login to Magewell decoder.");
+     header("HTTP/1.1 504 Gateway Timeout");
+    exit;
 }
 
 $message = '';
