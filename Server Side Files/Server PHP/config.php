@@ -120,6 +120,13 @@ $customNavOptions = [
             "name" => "Audio Settings",
             "path" => "ajafs4/audio.php?id={id}"
         ]
+    ],
+        "12" => [
+
+        [
+            "name" => "Decoding Settings",
+            "path" => "magewelldecoder/?id={id}"
+        ]
     ]
 ];
 

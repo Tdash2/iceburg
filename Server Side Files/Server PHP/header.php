@@ -670,7 +670,7 @@ $result = $conn->query($query);
         </li>
         <?php endif; ?>
         <!-- Encoders and cameras Menu -->
-        <?php if(($userPerm >= 1)&& userHasAnyPluginAccess([9], $devices) ): ?>
+        <?php if(($userPerm >= 1)&& userHasAnyPluginAccess([9], $devices) || userHasAnyPluginAccess([12], $devices) ): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Cameras & Encoders <span class="caret"></span></a>
           <ul class="dropdown-menu">
@@ -682,6 +682,16 @@ $result = $conn->query($query);
                   $name = $row['name'] ?? 'NULL';
                   ?>
                   <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/zowietekpov/?id=<?php echo  $id;?>"><?php echo  $name;?></a></li>
+                  
+                <?php }}} ?>
+                <?php
+            if ($result = $conn->query($query)) {
+              while ($row = $result->fetch_assoc()) {
+                if ($row['pluginID'] == 12 && checkperm($row['id'])){
+                  $id = $row['id']; 
+                  $name = $row['name'] ?? 'NULL';
+                  ?>
+                  <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/magewelldecoder/?id=<?php echo  $id;?>"><?php echo  $name;?></a></li>
                   
                 <?php }}} ?>
           </ul> 

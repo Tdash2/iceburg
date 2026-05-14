@@ -297,7 +297,8 @@ void setup() {
 
   if (!ethOK) {
     Serial.println("Ethernet failed");
-    while (true) delay(1000);
+    Ethernet.begin(mac, "192.168.1.10", "1.1.1.1", "192.168.1.1", "255.255.255.0");
+    ethOK = true;
   }
 
   webServer.begin();

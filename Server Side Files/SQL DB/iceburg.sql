@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: May 10, 2026 at 12:38 AM
+-- Generation Time: May 14, 2026 at 12:20 AM
 -- Server version: 11.8.3-MariaDB-1build1 from Ubuntu
 -- PHP Version: 8.4.11
 
@@ -85,7 +85,8 @@ INSERT INTO `deviceplugin` (`id`, `pluginName`, `pluginFolder`) VALUES
 (8, 'Blackmagic Router Panel 48 Button', '/48blackmagicrouterpanel/'),
 (9, 'ZowieTek POV Camera', '/zowietekpov/'),
 (10, 'AJA FS-2', '/ajafs2/'),
-(11, 'AJA FS-4 / FS HDR', '/ajafs4/');
+(11, 'AJA FS-4 / FS HDR', '/ajafs4/'),
+(12, 'Magewell Pro Convert Decoder', '/magewelldecoder/');
 
 -- --------------------------------------------------------
 
@@ -99,7 +100,9 @@ CREATE TABLE `devices` (
   `ip` text NOT NULL,
   `pluginID` int(11) NOT NULL,
   `madisorce` int(11) NOT NULL DEFAULT 0,
-  `lastping` text NOT NULL DEFAULT '0'
+  `lastping` text NOT NULL DEFAULT '0',
+  `username` text NOT NULL,
+  `password` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -216,7 +219,7 @@ ALTER TABLE `auditlogs`
 -- AUTO_INCREMENT for table `deviceplugin`
 --
 ALTER TABLE `deviceplugin`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `devices`
