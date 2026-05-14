@@ -78,7 +78,7 @@ function magewellRequest($url, $cookieFile)
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_COOKIEJAR => $cookieFile,
         CURLOPT_COOKIEFILE => $cookieFile,
-        CURLOPT_TIMEOUT => 10,
+        CURLOPT_TIMEOUT => 1,
     ]);
 
     $response = curl_exec($ch);

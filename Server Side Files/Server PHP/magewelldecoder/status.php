@@ -78,7 +78,7 @@ function magewellRequest($url, $cookieFile)
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_COOKIEJAR => $cookieFile,
         CURLOPT_COOKIEFILE => $cookieFile,
-        CURLOPT_TIMEOUT => 10,
+        CURLOPT_TIMEOUT => 1,
     ]);
 
     $response = curl_exec($ch);
@@ -154,115 +154,6 @@ if (!magewellLogin(
 
 $message = '';
 
-/*
-|--------------------------------------------------------------------------
-| HANDLE SOURCE SWITCHING
-|--------------------------------------------------------------------------
-*/
-
-if (
-    $_SERVER['REQUEST_METHOD'] === 'POST' &&
-    isset($_POST['switch_source'])
-) {
-
-    $sourceType = $_POST['source_type'] ?? '';
-    $sourceName = $_POST['source_name'] ?? '';
-
-    if ($sourceName !== '') {
-
-        $ndiFlag =
-            ($sourceType === 'ndi')
-            ? 'true'
-            : 'false';
-
-        $url = "http://{$magewellIp}/mwapi?method=set-channel"
-            . "&ndi-name={$ndiFlag}"
-            . "&name=" . urlencode($sourceName);
-
-        $result = magewellRequest($url, $cookieFile);
-
-        if (
-            $result['success'] &&
-            ($result['data']['status'] ?? -1) === 0
-        ) {
-            $message =
-                "Switched to source: "
-                . htmlspecialchars($sourceName);
-        } else {
-            $message = "Failed to switch source.";
-        }
-    }
-}
-
-/*
-|--------------------------------------------------------------------------
-| HANDLE VIDEO MODE CHANGE
-|--------------------------------------------------------------------------
-*/
-
-if (
-    $_SERVER['REQUEST_METHOD'] === 'POST' &&
-    isset($_POST['set_video_mode'])
-) {
-
-    $width       = intval($_POST['width'] ?? 0);
-    $height      = intval($_POST['height'] ?? 0);
-    $fieldRate   = intval($_POST['field_rate'] ?? 0);
-    $aspectRatio = floatval($_POST['aspect_ratio'] ?? 1.777777);
-    $interlaced  =
-        ($_POST['interlaced'] ?? 'false') === 'true'
-        ? 'true'
-        : 'false';
-
-    $url = "http://{$magewellIp}/mwapi?method=set-video-mode"
-        . "&width={$width}"
-        . "&height={$height}"
-        . "&field-rate={$fieldRate}"
-        . "&aspect-ratio={$aspectRatio}"
-        . "&interlaced={$interlaced}";
-
-    $result = magewellRequest($url, $cookieFile);
-
-    if (
-        $result['success'] &&
-        ($result['data']['status'] ?? -1) === 0
-    ) {
-        $message = "Output format updated.";
-    } else {
-        $message = "Failed to update output format.";
-    }
-}
-
-/*
-|--------------------------------------------------------------------------
-| HANDLE HDMI OUTPUT
-|--------------------------------------------------------------------------
-*/
-
-if (
-    $_SERVER['REQUEST_METHOD'] === 'POST' &&
-    isset($_POST['set_hdmi_output'])
-) {
-
-    $enabled =
-        ($_POST['enabled'] ?? 'true') === 'true'
-        ? 'true'
-        : 'false';
-
-    $url = "http://{$magewellIp}/mwapi?method=set-hdmi-output"
-        . "&enabled={$enabled}";
-
-    $result = magewellRequest($url, $cookieFile);
-
-    if (
-        $result['success'] &&
-        ($result['data']['status'] ?? -1) === 0
-    ) {
-        $message = "HDMI output updated.";
-    } else {
-        $message = "Failed to update HDMI output.";
-    }
-}
 
 /*
 |--------------------------------------------------------------------------
