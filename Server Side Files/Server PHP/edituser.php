@@ -324,6 +324,7 @@ Enable Custom Nav
 
 <hr>
 
+
 <div id="navList"></div>
 
 <input type="hidden" name="nav_json" id="nav_json">
@@ -337,72 +338,610 @@ Enable Custom Nav
 </div>
 
 <script>
+
 const devices = <?= json_encode($pluginOptions) ?>;
 const navData = <?= json_encode($currentNavElements) ?>;
 const options = <?= json_encode($customNavOptions ?? []) ?>;
 
+/*
+|--------------------------------------------------------------------------
+| NAV LIST
+|--------------------------------------------------------------------------
+*/
+
 let list = [...navData];
 
+/*
+|--------------------------------------------------------------------------
+| FIX OLD ITEMS
+|--------------------------------------------------------------------------
+*/
+
+list = list.map(item => {
+
+    /*
+    |--------------------------------------------------------------------------
+    | FIX OLD DATA
+    |--------------------------------------------------------------------------
+    */
+
+    if (!item.device_id) {
+
+        item.device_id = "custom";
+    }
+
+    return item;
+});
+
+/*
+|--------------------------------------------------------------------------
+| CUSTOM URL UI
+|--------------------------------------------------------------------------
+*/
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const navList = document.getElementById('navList');
+
+    const customHtml = `
+
+        <hr>
+
+        <h4>Custom URL</h4>
+
+        <input
+            style="color:black;"
+            id="customUrl"
+            class="form-control"
+            placeholder="https://example.com">
+
+        <br>
+
+        <input
+            style="color:black;"
+            id="customUrlLabel"
+            class="form-control"
+            placeholder="Button Label">
+
+        <br>
+
+        <button
+            style="color:black;"
+            type="button"
+            onclick="addCustomUrl()">
+
+            Add Custom URL
+
+        </button>
+
+        <hr>
+    `;
+
+    navList.insertAdjacentHTML(
+        'beforebegin',
+        customHtml
+    );
+
+});
+
+/*
+|--------------------------------------------------------------------------
+| RENDER
+|--------------------------------------------------------------------------
+*/
+
 function render() {
+
     const box = document.getElementById('navList');
+
     box.innerHTML = "";
 
     list.forEach((item, i) => {
 
-        box.innerHTML += `
-        <div class="nav-item">
-            <b>${item.label || item.name}</b><br>
-            <small>${item.path}</small><br>
+        const external =
+    String(item.device_id) === "custom";
 
-            <button style="color: black;" type="button" onclick="removeItem(${i})">Delete</button>
-        </div>`;
+        let internalEditor = "";
+
+        /*
+        |--------------------------------------------------------------------------
+        | INTERNAL EDITOR
+        |--------------------------------------------------------------------------
+        */
+
+        if (!external) {
+
+            let deviceOptions = `
+                <option value="">Select Device</option>
+            `;
+
+            devices.forEach(d => {
+
+                const selected =
+                    String(d.id) === String(item.device_id)
+                    ? 'selected'
+                    : '';
+
+                deviceOptions += `
+                    <option
+                        value="${d.id}"
+                        data-plugin="${d.pluginID}"
+                        ${selected}>
+
+                        ${d.name}
+
+                    </option>
+                `;
+            });
+
+            internalEditor = `
+
+                <div style="margin-bottom:10px;">
+
+                    <label>Internal Link</label><br>
+
+                    <select
+                        style="color:black; width:100%;"
+                        onchange="changeInternalDevice(${i}, this)">
+
+                        ${deviceOptions}
+
+                    </select>
+
+                    <br><br>
+
+                    <select
+                        id="internalOption${i}"
+                        style="color:black; width:100%;"
+                        onchange="changeInternalPath(${i}, this)">
+
+                    </select>
+
+                </div>
+            `;
+        }
+
+        box.innerHTML += `
+
+        <div class="nav-item">
+
+            <div style="margin-bottom:10px;">
+
+                <label>Button Name</label><br>
+
+                <input
+                    style="color:black; width:100%;"
+                    value="${item.label || item.name}"
+                    onchange="updateLabel(${i}, this.value)">
+
+            </div>
+
+            ${
+                external
+                ? `
+                <div style="margin-bottom:10px;">
+
+                    <label>External URL</label><br>
+
+                    <input
+                        style="color:black; width:100%;"
+                        value="${item.path}"
+                        onchange="updatePath(${i}, this.value)">
+
+                </div>
+                `
+                : internalEditor
+            }
+
+            ${
+                external
+                ? '<span style="color:#4caf50;">External URL</span><br>'
+                : '<span style="color:#2196f3;">Internal Link</span><br>'
+            }
+
+            <br>
+
+            <button
+                style="color:black;"
+                type="button"
+                onclick="removeItem(${i})">
+
+                Delete
+
+            </button>
+
+        </div>
+        `;
     });
 
-    document.getElementById('nav_json').value = JSON.stringify(list);
+    document.getElementById('nav_json').value =
+        JSON.stringify(list);
+
+    /*
+    |--------------------------------------------------------------------------
+    | POPULATE INTERNAL OPTIONS
+    |--------------------------------------------------------------------------
+    */
+
+    list.forEach((item, i) => {
+
+        if (String(item.device_id) === "custom") {
+    return;
 }
+
+        populateInternalOptions(i);
+    });
+}
+
+/*
+|--------------------------------------------------------------------------
+| ADD DEVICE NAV
+|--------------------------------------------------------------------------
+*/
 
 function addNav() {
 
-    const deviceId = document.getElementById('deviceSelect').value;
-    const opt = document.getElementById('optionSelect');
-    const label = document.getElementById('customLabel').value || opt.options[opt.selectedIndex].text;
-    
-   
+    const deviceId =
+        document.getElementById('deviceSelect').value;
 
-    if (!deviceId || !opt.value) return;
+    const opt =
+        document.getElementById('optionSelect');
+
+    if (!deviceId || !opt.value) {
+        return;
+    }
+
+    const label =
+        document.getElementById('customLabel').value ||
+        opt.options[opt.selectedIndex].text;
 
     list.push({
+
+        
+
         device_id: deviceId,
-        name: opt.options[opt.selectedIndex].text,
-        path: opt.value,
-        label: label
+
+        name:
+            opt.options[opt.selectedIndex].text,
+
+        path:
+            opt.value,
+
+        label:
+            label
     });
 
+    document.getElementById('customLabel').value = "";
+
     render();
 }
+
+/*
+|--------------------------------------------------------------------------
+| ADD CUSTOM URL
+|--------------------------------------------------------------------------
+*/
+
+function addCustomUrl() {
+
+    const url =
+        document.getElementById('customUrl')
+        .value
+        .trim();
+
+    const label =
+        document.getElementById('customUrlLabel')
+        .value
+        .trim();
+
+    if (!url) {
+
+        alert("Please enter a URL");
+
+        return;
+    }
+
+    let finalUrl = url;
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTO HTTPS
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        !url.startsWith('http://') &&
+        !url.startsWith('https://')
+    ) {
+
+        finalUrl = 'https://' + url;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDATE URL
+    |--------------------------------------------------------------------------
+    */
+
+    try {
+
+        new URL(finalUrl);
+
+    } catch (e) {
+
+        alert("Invalid URL");
+
+        return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BLOCK JAVASCRIPT URLS
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        finalUrl.toLowerCase()
+        .startsWith('javascript:')
+    ) {
+
+        alert("Invalid URL");
+
+        return;
+    }
+
+    list.push({
+
+        
+
+        device_id: "custom",
+
+        name:
+            label || finalUrl,
+
+        path:
+            finalUrl,
+
+        label:
+            label || finalUrl
+    });
+
+    document.getElementById('customUrl').value = "";
+    document.getElementById('customUrlLabel').value = "";
+
+    render();
+}
+
+/*
+|--------------------------------------------------------------------------
+| REMOVE ITEM
+|--------------------------------------------------------------------------
+*/
 
 function removeItem(i) {
-    list.splice(i,1);
+
+    list.splice(i, 1);
+
     render();
 }
 
-document.getElementById('deviceSelect').addEventListener('change', function() {
+/*
+|--------------------------------------------------------------------------
+| UPDATE LABEL
+|--------------------------------------------------------------------------
+*/
 
-    const id = this.value;
-    const plugin = this.options[this.selectedIndex].dataset.plugin;
+function updateLabel(i, value) {
 
-    const optBox = document.getElementById('optionSelect');
-    optBox.innerHTML = "";
+    list[i].label = value;
+    list[i].name = value;
 
-    if (!options[plugin]) return;
+    document.getElementById('nav_json').value =
+        JSON.stringify(list);
+}
+
+/*
+|--------------------------------------------------------------------------
+| UPDATE EXTERNAL URL
+|--------------------------------------------------------------------------
+*/
+
+function updatePath(i, value) {
+
+    value = value.trim();
+
+    /*
+    |--------------------------------------------------------------------------
+    | BLOCK JAVASCRIPT URLS
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        value.toLowerCase()
+        .startsWith('javascript:')
+    ) {
+
+        alert("Invalid URL");
+
+        render();
+
+        return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AUTO HTTPS
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        !value.startsWith('http://') &&
+        !value.startsWith('https://')
+    ) {
+
+        value = '' + value;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDATE
+    |--------------------------------------------------------------------------
+    */
+
+
+    list[i].path = value;
+
+    document.getElementById('nav_json').value =
+        JSON.stringify(list);
+}
+
+/*
+|--------------------------------------------------------------------------
+| POPULATE INTERNAL OPTIONS
+|--------------------------------------------------------------------------
+*/
+
+function populateInternalOptions(i) {
+
+    const item = list[i];
+
+    const device =
+        devices.find(d =>
+            String(d.id) === String(item.device_id)
+        );
+
+    if (!device) {
+        return;
+    }
+
+    const plugin = device.pluginID;
+
+    const select =
+        document.getElementById(`internalOption${i}`);
+
+    if (!select) {
+        return;
+    }
+
+    select.innerHTML = "";
+
+    if (!options[plugin]) {
+        return;
+    }
 
     options[plugin].forEach(o => {
-    optBox.style.color = "black";
-        optBox.innerHTML += `<option value="${o.path.replace('{id}', id)}">${o.name}</option>`;
+
+        const finalPath =
+            o.path.replace('{id}', item.device_id);
+
+        const selected =
+            finalPath === item.path
+            ? 'selected'
+            : '';
+
+        select.innerHTML += `
+            <option
+                value="${finalPath}"
+                ${selected}>
+
+                ${o.name}
+
+            </option>
+        `;
+    });
+}
+
+/*
+|--------------------------------------------------------------------------
+| CHANGE INTERNAL DEVICE
+|--------------------------------------------------------------------------
+*/
+
+function changeInternalDevice(i, select) {
+
+    const deviceId = select.value;
+
+    const device =
+        devices.find(d =>
+            String(d.id) === String(deviceId)
+        );
+
+    if (!device) {
+        return;
+    }
+
+    const plugin = device.pluginID;
+
+    list[i].device_id = deviceId;
+
+    if (
+        options[plugin] &&
+        options[plugin].length > 0
+    ) {
+
+        list[i].path =
+            options[plugin][0]
+            .path
+            .replace('{id}', deviceId);
+
+        list[i].name =
+            options[plugin][0].name;
+    }
+
+    render();
+}
+
+/*
+|--------------------------------------------------------------------------
+| CHANGE INTERNAL PATH
+|--------------------------------------------------------------------------
+*/
+
+function changeInternalPath(i, select) {
+
+    list[i].path = select.value;
+
+    document.getElementById('nav_json').value =
+        JSON.stringify(list);
+}
+
+/*
+|--------------------------------------------------------------------------
+| DEVICE OPTION SELECTOR
+|--------------------------------------------------------------------------
+*/
+
+document.getElementById('deviceSelect')
+.addEventListener('change', function() {
+
+    const id = this.value;
+
+    const plugin =
+        this.options[this.selectedIndex]
+        .dataset.plugin;
+
+    const optBox =
+        document.getElementById('optionSelect');
+
+    optBox.innerHTML = "";
+
+    if (!options[plugin]) {
+        return;
+    }
+
+    options[plugin].forEach(o => {
+
+        optBox.innerHTML += `
+        <option value="${o.path.replace('{id}', id)}">
+
+            ${o.name}
+
+        </option>`;
     });
 });
 
 render();
+
 </script>
 
 </body>
