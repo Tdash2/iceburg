@@ -169,11 +169,19 @@ def start_ffmpeg():
         "-hide_banner",
         "-loglevel", "quiet",
         "-nostats",
+        
+        "-fflags", "nobuffer",
+        "-flags", "low_delay",
+        "-avioflags", "direct",
+
+         "-vsync", "passthrough",
+
+
 
         "-f", "lavfi",
         "-i", f"nullsrc=size={video['w']}x{video['h']}:rate={video['fps']}",
 
-        "-thread_queue_size", "512",
+        "-thread_queue_size", "0",
         "-f", "rawvideo",
         "-pix_fmt", "rgba",
         "-s", f"{WIDTH}x{HEIGHT}",
@@ -193,7 +201,7 @@ def start_ffmpeg():
         "-field_order", "tt" if video["interlace"] else "progressive",
 
         "-c:a", "pcm_s16le",
-        "-r", video["fps"],
+        
 
         "-f", "decklink",
         DECKLINK_DEVICE
