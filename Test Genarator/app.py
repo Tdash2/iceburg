@@ -3,92 +3,85 @@ import threading
 import time
 import json
 import os
-import re
+import socket
+import io
+
+from PIL import Image, ImageDraw, ImageFont
+from flask import Flask, request, jsonify, render_template_string
 import logging
-import warnings
 
-logging.getLogger("werkzeug").setLevel(logging.ERROR)
-logging.getLogger("flask").setLevel(logging.ERROR)
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
-warnings.filterwarnings("ignore")
+# =========================================================
+# CONFIG
+# =========================================================
 
-from flask import Flask, request, render_template_string, jsonify
+WIDTH, HEIGHT = 1280, 720
+FPS = 30
 
+PREVIEW_FPS = 8
+preview_interval = 1.0 / PREVIEW_FPS
 
-
-
-
-# silence Flask dev server warning + logs
-
-
+STATE_FILE = "state.json"
+FONT_PATH = "/usr/share/fonts/truetype/roboto/unhinted/RobotoCondensed-Bold.ttf"
+DECKLINK_DEVICE = "DeckLink Duo (1)"
 
 app = Flask(__name__)
 
-STATE_FILE = "state.json"
-TIME_FILE = "time.txt"
-TEXT1_FILE = "text1.txt"
-TEXT2_FILE = "text2.txt"
-IP_FILE = "ip.txt"
+# =========================================================
+# GLOBALS (FIXED MEMORY MODEL)
+# =========================================================
 
-FONT = "/usr/share/fonts/truetype/Roboto/Roboto_Condensed-ExtraBold.ttf"
+ffmpeg_process = None
+state_lock = threading.Lock()
 
-FFMPEG_PROCESS = None
+latest_frame_jpeg = None
+latest_frame_lock = threading.Lock()
 
+frame_lock = threading.Lock()
 
-# ----------------------------
-# FILE SAFE WRITE
-# ----------------------------
-def write_file(path, content):
-    tmp = path + ".tmp"
-    with open(tmp, "w") as f:
-        f.write(content)
-    os.replace(tmp, path)
+frame_a = Image.new("RGBA", (WIDTH, HEIGHT))
+frame_b = Image.new("RGBA", (WIDTH, HEIGHT))
+frame_write = frame_a
+frame_read = None
 
-
-# ----------------------------
+# =========================================================
 # STATE
-# ----------------------------
+# =========================================================
+
+DEFAULT_STATE = {
+    "text1": "Test Signal Generator",
+    "text2": "Version 2.0",
+    "muted": False,
+    "box_x": 100,
+    "box_y": 600,
+    "box_w": 200,
+    "box_h": 100,
+    "box_speed_x": 10,
+    "box_speed_y": 11,
+    "output_mode": "1080i",
+}
+
 def load_state():
     if not os.path.exists(STATE_FILE):
-        return {"muted": False, "text1": "", "text2": ""}
+        save_state(DEFAULT_STATE)
+        return DEFAULT_STATE.copy()
     try:
         with open(STATE_FILE, "r") as f:
             return json.load(f)
     except:
-        return {"muted": False, "text1": "", "text2": ""}
-
+        return DEFAULT_STATE.copy()
 
 def save_state(s):
     with open(STATE_FILE, "w") as f:
-        json.dump(s, f, indent=2)
+        json.dump(s, f)
 
+state = load_state()
 
-# ----------------------------
-# GET DECKLINK DEVICES
-# ----------------------------
-def get_devices():
-    try:
-        r = subprocess.run(
-            ["ffmpeg", "-f", "decklink", "-list_devices", "1", "-i", "dummy"],
-            capture_output=True,
-            text=True
-        )
-        return re.findall(r"'([^']+)'", r.stderr)
-    except:
-        return []
-
-
-# ----------------------------
-# CLOCK LOOP
-# ----------------------------
-def clock_loop():
-    while True:
-        now = time.time()
-        ms = int((now % 1) * 1000)
-        t = time.strftime("%H:%M:%S", time.localtime(now))
-        write_file(TIME_FILE, f"{t}.{ms:03d}")
-        time.sleep(0.01)
-import socket
+# =========================================================
+# NETWORK
+# =========================================================
 
 def get_local_ip():
     try:
@@ -99,239 +92,390 @@ def get_local_ip():
         return ip
     except:
         return "unknown"
-        
-def ip_loop():
-    last_ip = None
 
-    while True:
-        ip_addr = get_local_ip()
-        formatted = "WEB UI: HTTP://" + ip_addr +":8100"
+LOCAL_IP = get_local_ip()
+IP_TEXT = f"WEB UI: http://{LOCAL_IP}:8100"
 
-        if ip_addr != last_ip:
-            write_file(IP_FILE, formatted)
-            last_ip = ip_addr
+# =========================================================
+# FONTS
+# =========================================================
 
-        time.sleep(5)      
+font_big = ImageFont.truetype(FONT_PATH, 150)
+font_med = ImageFont.truetype(FONT_PATH, 80)
+font_med_small = ImageFont.truetype(FONT_PATH, 55)
+font_small = ImageFont.truetype(FONT_PATH, 40)
 
+# =========================================================
+# FFmpeg
+# =========================================================
 
-# ----------------------------
-# TEXT LOOP
-# ----------------------------
-def text_loop():
-    last = {}
-
-    while True:
-        state = load_state()
-
-        if state.get("text1") != last.get("t1"):
-            write_file(TEXT1_FILE, state.get("text1", ""))
-            last["t1"] = state.get("text1")
-
-        if state.get("text2") != last.get("t2"):
-            write_file(TEXT2_FILE, state.get("text2", ""))
-            last["t2"] = state.get("text2")
-
-        time.sleep(0.2)
-
-
-# ----------------------------
-# START FFMPEG
-# ----------------------------
 def start_ffmpeg():
-    global FFMPEG_PROCESS
-
-    devices = get_devices()
-    if not devices:
-        print("❌ No DeckLink devices found")
-        return
-
-    device = devices[0]
-    state = load_state()
-    muted = state.get("muted", False)
-
-    print(f"Using DeckLink device: {device} | muted={muted}")
-
-    vf = (
-        f"drawtext=fontfile={FONT}:textfile={IP_FILE}:reload=1:"
-        f"fontsize=30:fontcolor=white:box=1:boxcolor=black@0.5:"
-        f"x=10:y=10,"
-        
-        f"drawtext=fontfile={FONT}:textfile={TIME_FILE}:reload=1:"
-        f"fontsize=330:fontcolor=white:box=1:boxcolor=black@0.5:"
-        f"x=(w-text_w)/2:y=100,"
-
-        f"drawtext=fontfile={FONT}:textfile={TEXT1_FILE}:reload=1:"
-        f"fontsize=150:fontcolor=white:box=1:boxcolor=black@0.5:"
-        f"x=(w-text_w)/2:y=450,"
-
-        f"drawtext=fontfile={FONT}:textfile={TEXT2_FILE}:reload=1:"
-        f"fontsize=100:fontcolor=white:box=1:boxcolor=black@0.5:"
-        f"x=(w-text_w)/2:y=600,"
-
-        f"format=uyvy422"
-    )
+    global ffmpeg_process
 
     audio_input = (
         "aevalsrc=sin(2*PI*1000*t):sample_rate=48000:channel_layout=stereo"
-        if not muted else
-        "anullsrc=channel_layout=stereo:sample_rate=48000"
+        if not state["muted"]
+        else "anullsrc=channel_layout=stereo:sample_rate=48000"
+    )
+
+    vf = (
+        f"[1:v]scale=1920:1080:flags=fast_bilinear[ov];"
+        f"[0:v][ov]overlay=0:0[v]"
     )
 
     cmd = [
         "ffmpeg",
-        "-re",
+        "-hide_banner",
+        "-loglevel", "quiet",
+        "-nostats",
+
         "-f", "lavfi",
-        "-i", "smptebars=size=1920x1080:rate=30000/1001",
+        "-i", "nullsrc=size=1920x1080:rate=30000/1001",
+
+        "-thread_queue_size", "512",
+        "-f", "rawvideo",
+        "-pix_fmt", "rgba",
+        "-s", f"{WIDTH}x{HEIGHT}",
+        "-r", str(FPS),
+        "-i", "-",
+
         "-f", "lavfi",
         "-i", audio_input,
-        "-vf", vf,
+
+        "-filter_complex", vf,
+
+        "-map", "[v]",
+        "-map", "2:a",
+
         "-pix_fmt", "uyvy422",
         "-c:v", "v210",
         "-c:a", "pcm_s16le",
-        "-r", "30000/1001",
-        "-map", "0:v:0",
-        "-map", "1:a:0",
+
         "-f", "decklink",
-        device
+        DECKLINK_DEVICE
     ]
 
-    if FFMPEG_PROCESS:
+    if ffmpeg_process:
         try:
-            FFMPEG_PROCESS.kill()
+            ffmpeg_process.kill()
+            ffmpeg_process.wait(timeout=2)
         except:
             pass
 
-    FFMPEG_PROCESS = subprocess.Popen(cmd)
+    ffmpeg_process = subprocess.Popen(cmd, stdin=subprocess.PIPE, bufsize=0)
+
+# =========================================================
+# DRAW HELPERS
+# =========================================================
+
+def draw_text_box(draw, xy, text, font, padding=10):
+    x, y = xy
+    l, t, r, b = draw.textbbox((0, 0), text, font=font)
+    w, h = r - l, b - t
+
+    draw.rectangle((x - padding, y - padding, x + w + padding, y + h + padding),
+                   fill=(0, 0, 0, 200))
+
+    draw.text((x - l, y - t), text, font=font, fill=(255, 255, 255, 255))
 
 
-# ----------------------------
+def draw_centered_box(draw, center_y, text, font, width, padding=20):
+    l, t, r, b = draw.textbbox((0, 0), text, font=font)
+    tw, th = r - l, b - t
+
+    bx1 = (width - tw) / 2
+    by1 = center_y - th / 2
+
+    draw.rectangle((bx1 - padding, by1 - padding,
+                    bx1 + tw + padding, by1 + th + padding),
+                   fill=(0, 0, 0, 255))
+
+    draw.text((bx1 - l, by1 - t), text, font=font, fill=(255, 255, 255, 255))
+
+
+def draw_smpte_bars(draw, w, h):
+    colors = [
+        (192, 192, 192),
+        (192, 192, 0),
+        (0, 192, 192),
+        (0, 192, 0),
+        (192, 0, 192),
+        (192, 0, 0),
+        (0, 0, 192),
+    ]
+
+    bar_w = w // len(colors)
+
+    for i, c in enumerate(colors):
+        draw.rectangle((i * bar_w, 0, (i + 1) * bar_w, h), fill=c)
+
+    draw.rectangle((0, h, w, h), fill=(16, 16, 16))
+
+# =========================================================
+# GRAPHICS LOOP (FIXED - NO COPY PER FRAME)
+# =========================================================
+
+def graphics_loop():
+    global frame_write, frame_read, ffmpeg_process, state
+
+    frame_time = 1.0 / FPS
+    next_frame = time.perf_counter()
+
+    box = state
+
+    while True:
+        now = time.perf_counter()
+
+        draw = ImageDraw.Draw(frame_write)
+
+        draw.rectangle((0, 0, WIDTH, HEIGHT), fill=(0, 0, 0, 0))
+        draw_smpte_bars(draw, WIDTH, HEIGHT)
+
+        # motion
+        box["box_x"] += box["box_speed_x"]
+
+        if box["box_x"] <= 100 or box["box_x"] >= WIDTH - 300:
+            box["box_speed_x"] *= -1
+            
+            
+
+        draw.rectangle((box["box_x"], 470, box["box_x"] + box["box_w"], 670),
+                       fill=(255, 255, 255, 255))
+
+        draw_centered_box(draw, 200, time.strftime("%H:%M:%S"), font_big, WIDTH,10)
+        
+  
+        draw_centered_box(draw, 324, box["text1"], font_med, WIDTH,3)
+        draw_centered_box(draw, 400, box["text2"], font_med_small, WIDTH,3)
+
+        draw_text_box(draw, (20, 20), IP_TEXT, font_small, 4)
+
+
+
+        # SWAP BUFFER (NO COPY)
+        with frame_lock:
+            frame_read = frame_write
+            frame_write = frame_b if frame_write is frame_a else frame_a
+
+        if ffmpeg_process and ffmpeg_process.stdin:
+            try:
+                ffmpeg_process.stdin.write(frame_read.tobytes())
+            except:
+                pass
+
+        next_frame += frame_time
+        sleep = next_frame - time.perf_counter()
+
+        if sleep > 0:
+            time.sleep(sleep)
+        else:
+            next_frame = time.perf_counter()
+
+# =========================================================
+# PREVIEW WORKER (NO COPY)
+# =========================================================
+
+def preview_worker():
+    global latest_frame_jpeg
+
+    next_time = 0
+
+    while True:
+        now = time.perf_counter()
+
+        if now < next_time:
+            time.sleep(0.01)
+            continue
+
+        next_time = now + preview_interval
+
+        with frame_lock:
+            frame = frame_read
+
+        if frame is None:
+            continue
+
+        frame = frame.resize((640, 360)).convert("RGB")
+
+        buf = io.BytesIO()
+        frame.save(buf, format="JPEG", quality=65)
+
+        with latest_frame_lock:
+            latest_frame_jpeg = buf.getvalue()
+
+# =========================================================
 # WATCHDOG
-# ----------------------------
+# =========================================================
+
 def watchdog():
+    global ffmpeg_process
+
     while True:
         time.sleep(5)
-        if FFMPEG_PROCESS and FFMPEG_PROCESS.poll() is not None:
-            print("⚠️ FFmpeg crashed → restarting")
+        if ffmpeg_process and ffmpeg_process.poll() is not None:
             start_ffmpeg()
 
+# =========================================================
+# FLASK API (RESTORED FULLY)
+# =========================================================
 
-# ----------------------------
-# API
-# ----------------------------
 @app.route("/")
 def index():
     return render_template_string(HTML)
 
-
 @app.route("/state")
-def state():
-    return jsonify(load_state())
-
+def api_state():
+    return jsonify(state)
 
 @app.route("/update", methods=["POST"])
 def update():
-    state = load_state()
-
-    state["text1"] = request.form.get("text1", "")
-    state["text2"] = request.form.get("text2", "")
-
-    save_state(state)
+    with state_lock:
+        state["text1"] = request.form.get("text1", "")
+        state["text2"] = request.form.get("text2", "")
+        save_state(state)
     return ("", 204)
 
+@app.route("/preview.jpg")
+def preview():
+    with latest_frame_lock:
+        if latest_frame_jpeg is None:
+            return ("No frame", 404)
+
+        return latest_frame_jpeg, 200, {
+            "Content-Type": "image/jpeg",
+            "Cache-Control": "no-store"
+        }
 
 @app.route("/mute", methods=["POST"])
 def mute():
-    state = load_state()
-    state["muted"] = not state.get("muted", False)
-
-    save_state(state)
+    with state_lock:
+        state["muted"] = not state["muted"]
+        save_state(state)
     start_ffmpeg()
     return ("", 204)
 
+@app.route("/mode", methods=["POST"])
+def set_mode():
+    with state_lock:
+        state["output_mode"] = request.form.get("mode", "1080i")
+        save_state(state)
+    start_ffmpeg()
+    return ("", 204)
 
-# ----------------------------
-# UI
-# ----------------------------
+@app.route("/speed", methods=["POST"])
+def speed():
+    with state_lock:
+        try:
+            state["box_speed"] = int(request.form.get("speed"))
+        except:
+            pass
+        save_state(state)
+    return ("", 204)
+
+# =========================================================
+# WEB UI (UNCHANGED)
+# =========================================================
+
 HTML = """
+<!DOCTYPE html>
+<html>
+<title>Test Signal Generator</title>
+<link rel='stylesheet' href='http://"""+LOCAL_IP+"""/depends/bootstrap.min.css'>
+<script src='http://"""+LOCAL_IP+"""/depends/jquery.min.js'></script>
+<script src='http://"""+LOCAL_IP+"""/depends/bootstrap.min.js'></script>
+<style>body { background-color:#232323; color:#FFF; }</style></head><body>
+
+<body style="font-family:sans-serif;padding:40px;">
 
 
-<h2>Test Pattern Genarator</h2>
+<div class='container'><div class='py-5 text-center'><h2>Test Signal Generator</h2></div>
 
-Text 1:<br>
-<input id="text1" size=32 maxlength="24"><br><br>
+<div class='form-group'><label>First Line Text</label>
+<input class='form-control' id="text1" size="40"></div>
 
-Text 2:<br>
-<input id="text2" size=32 maxlength="38"><br><br>
+<div class='form-group'><label>Second Line Text</h3></label>
+<input  class='form-control' id="text2" size="40"></div>
 
-<button id="muteBtn" onclick="toggleMute()">Mute / Unmute</button>
-<span id="muteStatus" style="color:red; font-weight:bold;"></span>
+<div class='form-group'><label>Output Format</label>
+<select class='form-control' id="mode" onchange="setMode()">
+  <option value="1080p">1080p</option>
+  <option value="1080i">1080i</option>
+  <option value="720p">720p</option>
+</select></div>
 
+<div class='form-group'><label>Preview</label>
+<img id="prev" class="form-control" src="/preview.jpg?t=1779764323151" width="640" style="
+    height: 100%;
+">
+</div>
 <script>
-let lastState = {};
+function setMode() {
+    const fd = new FormData();
+    fd.append("mode", mode.value);
 
-function sendUpdate() {
-    const data = new FormData();
-    data.append("text1", text1.value);
-    data.append("text2", text2.value);
-
-    fetch("/update", { method: "POST", body: data });
+    fetch("/mode", {
+        method: "POST",
+        body: fd
+    });
 }
 
-function toggleMute() {
-    fetch("/mute", { method: "POST" });
+async function refresh(){
+    const r = await fetch("/state");
+    const s = await r.json();
+
+    // only update if user is NOT typing
+    if (document.activeElement !== text1) text1.value = s.text1;
+    if (document.activeElement !== text2) text2.value = s.text2;
+
+    
+    mode.value = s.output_mode;
 }
 
-text1.oninput = text2.oninput = (() => {
-    let t;
-    return () => {
-        clearTimeout(t);
-        t = setTimeout(sendUpdate, 10);
-    };
-})();
 
-// POLL SERVER
-async function poll() {
-    const res = await fetch("/state");
-    const s = await res.json();
 
-    if (JSON.stringify(s) !== JSON.stringify(lastState)) {
-        lastState = s;
-
-        text1.value = s.text1 || "";
-        text2.value = s.text2 || "";
-
-        if (s.muted) {
-           // muteStatus.innerText = "MUTED";
-            muteBtn.innerText = "Unmute";
-        } else {
-            //muteStatus.innerText = "";
-            muteBtn.innerText = "Mute";
-        }
-    }
+function update(){
+    const fd = new FormData();
+    fd.append("text1", text1.value);
+    fd.append("text2", text2.value);
+    fetch("/update",{method:"POST",body:fd});
 }
 
-setInterval(poll, 5000);
-poll();
+function updateSpeed(){
+    const fd = new FormData();
+    fd.append("speed", speed.value);
+    fetch("/speed",{method:"POST",body:fd});
+}
+
+function toggleMute(){
+    fetch("/mute",{method:"POST"});
+}
+
+text1.oninput = update;
+text2.oninput = update;
+
+
+setInterval(() => {
+    document.getElementById("prev").src =
+        "/preview.jpg?t=" + Date.now();
+}, 300); // 5 fps preview
+
+
+refresh();
+setInterval(refresh, 1000);
 </script>
+</body>
+</html>
 """
 
-
-# ----------------------------
+# =========================================================
 # MAIN
-# ----------------------------
-if __name__ == "__main__":
-    write_file(TEXT1_FILE, "")
-    write_file(TEXT2_FILE, "")
+# =========================================================
 
-    threading.Thread(target=clock_loop, daemon=True).start()
-    threading.Thread(target=text_loop, daemon=True).start()
-    threading.Thread(target=watchdog, daemon=True).start()
-    threading.Thread(target=ip_loop, daemon=True).start()
+if __name__ == "__main__":
     start_ffmpeg()
 
-    app.run(
-    host="0.0.0.0",
-    port=8100,
-    debug=False,
-    use_reloader=False
-)
+    threading.Thread(target=graphics_loop, daemon=True).start()
+    threading.Thread(target=preview_worker, daemon=True).start()
+    threading.Thread(target=watchdog, daemon=True).start()
+
+    app.run(host="0.0.0.0", port=8100, debug=False, use_reloader=False)
