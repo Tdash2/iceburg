@@ -109,8 +109,41 @@ font_small = ImageFont.truetype(FONT_PATH, 40)
 # FFmpeg
 # =========================================================
 
+def get_video_mode():
+    mode = state.get("output_mode", "1080i")
+
+    if mode == "1080p":
+        return {
+            "w": 1920,
+            "h": 1080,
+            "fps": "60000/1001",
+            "interlace": False
+        }
+
+    if mode == "720p":
+        return {
+            "w": 1280,
+            "h": 720,
+            "fps": "60000/1001",
+            "interlace": False
+        }
+
+    # default = 1080i
+    return {
+        "w": 1920,
+        "h": 1080,
+        "fps": "30000/1001",
+        "interlace": True
+    }
+
+# =========================================================
+# FFmpeg (NOW PROPERLY MODE-AWARE)
+# =========================================================
+
 def start_ffmpeg():
     global ffmpeg_process
+
+    video = get_video_mode()
 
     audio_input = (
         "aevalsrc=sin(2*PI*1000*t):sample_rate=48000:channel_layout=stereo"
@@ -118,10 +151,18 @@ def start_ffmpeg():
         else "anullsrc=channel_layout=stereo:sample_rate=48000"
     )
 
-    vf = (
-        f"[1:v]scale=1920:1080:flags=fast_bilinear[ov];"
-        f"[0:v][ov]overlay=0:0[v]"
-    )
+    # overlay graph
+    if video["interlace"]:
+        vf = (
+            f"[1:v]scale={video['w']}:{video['h']}:flags=fast_bilinear[ov];"
+            f"[0:v][ov]overlay=0:0[v0];"
+            f"[v0]tinterlace=mode=interleave_top[v]"
+        )
+    else:
+        vf = (
+            f"[1:v]scale={video['w']}:{video['h']}:flags=fast_bilinear[ov];"
+            f"[0:v][ov]overlay=0:0[v]"
+        )
 
     cmd = [
         "ffmpeg",
@@ -130,7 +171,7 @@ def start_ffmpeg():
         "-nostats",
 
         "-f", "lavfi",
-        "-i", "nullsrc=size=1920x1080:rate=30000/1001",
+        "-i", f"nullsrc=size={video['w']}x{video['h']}:rate={video['fps']}",
 
         "-thread_queue_size", "512",
         "-f", "rawvideo",
@@ -149,11 +190,16 @@ def start_ffmpeg():
 
         "-pix_fmt", "uyvy422",
         "-c:v", "v210",
+        "-field_order", "tt" if video["interlace"] else "progressive",
+
         "-c:a", "pcm_s16le",
+        "-r", video["fps"],
 
         "-f", "decklink",
         DECKLINK_DEVICE
     ]
+
+    print("FFmpeg mode:", state["output_mode"])
 
     if ffmpeg_process:
         try:
