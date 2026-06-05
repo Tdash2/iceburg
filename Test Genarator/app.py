@@ -17,6 +17,17 @@ log.setLevel(logging.ERROR)
 # CONFIG
 # =========================================================
 
+
+FONT_PATH = "/usr/share/fonts/truetype/roboto/unhinted/RobotoCondensed-Bold.ttf"
+DECKLINK_DEVICE = "DeckLink Duo (1)"
+name = "Output 1"
+serverport = 8100
+
+
+# =========================================================
+# GLOBALS (FIXED MEMORY MODEL)
+# =========================================================
+app = Flask(__name__)
 WIDTH, HEIGHT = 1280, 720
 FPS = 30
 
@@ -24,14 +35,6 @@ PREVIEW_FPS = 8
 preview_interval = 1.0 / PREVIEW_FPS
 
 STATE_FILE = "state.json"
-FONT_PATH = "/usr/share/fonts/truetype/roboto/unhinted/RobotoCondensed-Bold.ttf"
-DECKLINK_DEVICE = "DeckLink Duo (1)"
-
-app = Flask(__name__)
-
-# =========================================================
-# GLOBALS (FIXED MEMORY MODEL)
-# =========================================================
 
 ffmpeg_process = None
 state_lock = threading.Lock()
@@ -94,7 +97,7 @@ def get_local_ip():
         return "unknown"
 
 LOCAL_IP = get_local_ip()
-IP_TEXT = f"WEB UI: http://{LOCAL_IP}:8100"
+IP_TEXT = f"WEB UI: http://{LOCAL_IP}:"+str(serverport)
 
 # =========================================================
 # FONTS
@@ -132,7 +135,7 @@ def get_video_mode():
     return {
         "w": 1920,
         "h": 1080,
-        "fps": "30000/1001",
+        "fps": "60000/1001",
         "interlace": True
     }
 
@@ -167,7 +170,7 @@ def start_ffmpeg():
     cmd = [
         "ffmpeg",
         "-hide_banner",
-        "-loglevel", "quiet",
+        #"-loglevel", "quiet",
         "-nostats",
         
         "-fflags", "nobuffer",
@@ -433,7 +436,7 @@ def speed():
 HTML = """
 <!DOCTYPE html>
 <html>
-<title>Test Signal Generator</title>
+<title>Test Signal Generator """+ name +"""</title>
 <link rel='stylesheet' href='http://"""+LOCAL_IP+"""/depends/bootstrap.min.css'>
 <script src='http://"""+LOCAL_IP+"""/depends/jquery.min.js'></script>
 <script src='http://"""+LOCAL_IP+"""/depends/bootstrap.min.js'></script>
@@ -442,7 +445,7 @@ HTML = """
 <body style="font-family:sans-serif;padding:40px;">
 
 
-<div class='container'><div class='py-5 text-center'><h2>Test Signal Generator</h2></div>
+<div class='container'><div class='py-5 text-center'><h2>Test Signal Generator """+ name +"""</h2></div>
 
 <div class='form-group'><label>First Line Text</label>
 <input class='form-control' id="text1" size="40"></div>
@@ -532,4 +535,4 @@ if __name__ == "__main__":
     threading.Thread(target=preview_worker, daemon=True).start()
     threading.Thread(target=watchdog, daemon=True).start()
 
-    app.run(host="0.0.0.0", port=8100, debug=False, use_reloader=False)
+    app.run(host="0.0.0.0", port=serverport, debug=False, use_reloader=False)
