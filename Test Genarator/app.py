@@ -19,7 +19,7 @@ log.setLevel(logging.ERROR)
 
 
 FONT_PATH = "/usr/share/fonts/truetype/roboto/unhinted/RobotoCondensed-Bold.ttf"
-DECKLINK_DEVICE = "DeckLink Duo (1)"
+DECKLINK_DEVICE = "DeckLink 4K Extreme"
 name = "Output 1"
 serverport = 8100
 
@@ -30,7 +30,7 @@ serverport = 8100
 app = Flask(__name__)
 WIDTH, HEIGHT = 1280, 720
 FPS = 30
-
+PROGRAM_START = time.time()
 PREVIEW_FPS = 8
 preview_interval = 1.0 / PREVIEW_FPS
 
@@ -64,6 +64,7 @@ DEFAULT_STATE = {
     "box_speed_x": 10,
     "box_speed_y": 11,
     "output_mode": "1080i",
+    "show_web_ui": True,
 }
 
 def load_state():
@@ -304,9 +305,11 @@ def graphics_loop():
   
         draw_centered_box(draw, 324, box["text1"], font_med, WIDTH,3)
         draw_centered_box(draw, 400, box["text2"], font_med_small, WIDTH,3)
-
-        draw_text_box(draw, (20, 20), IP_TEXT, font_small, 4)
-
+        if (
+            state.get("show_web_ui", True)
+            or (time.time() - PROGRAM_START) < 20
+        ):
+            draw_text_box(draw, (20, 20), IP_TEXT, font_small, 4)
 
 
         # SWAP BUFFER (NO COPY)
@@ -428,6 +431,15 @@ def speed():
             pass
         save_state(state)
     return ("", 204)
+@app.route("/set_webui", methods=["POST"])
+def set_webui():
+    with state_lock:
+        state["show_web_ui"] = (
+            request.form.get("show", "false") == "true"
+        )
+        save_state(state)
+
+    return ("", 204)
 
 # =========================================================
 # WEB UI (UNCHANGED)
@@ -455,17 +467,38 @@ HTML = """
 
 <div class='form-group'><label>Output Format</label>
 <select class='form-control' id="mode" onchange="setMode()">
-  <option value="1080p">1080p</option>
-  <option value="1080i">1080i</option>
-  <option value="720p">720p</option>
+  <option value="1080p">1920x1080 @ 59.94p</option>
+  <option value="1080i">1080x1080 @ 59.94i</option>
+  <option value="720p">1280x720 @ 59.94p</option>
 </select></div>
+
+<div class="form-check">
+  <input class="form-check-input"
+         type="checkbox"
+         id="showweb"
+         onchange="setWebUI()">
+
+  <label class="form-check-label">
+    Show WEB UI address on output
+  </label>
+</div>
 
 <div class='form-group'><label>Preview</label>
 <img id="prev" class="form-control" src="/preview.jpg?t=1779764323151" width="640" style="
     height: 100%;
 ">
 </div>
+
 <script>
+function setWebUI() {
+    const fd = new FormData();
+    fd.append("show", showweb.checked);
+
+    fetch("/set_webui", {
+        method: "POST",
+        body: fd
+    });
+}
 function setMode() {
     const fd = new FormData();
     fd.append("mode", mode.value);
@@ -484,7 +517,7 @@ async function refresh(){
     if (document.activeElement !== text1) text1.value = s.text1;
     if (document.activeElement !== text2) text2.value = s.text2;
 
-    
+    showweb.checked = s.show_web_ui;
     mode.value = s.output_mode;
 }
 
@@ -495,6 +528,7 @@ function update(){
     fd.append("text1", text1.value);
     fd.append("text2", text2.value);
     fetch("/update",{method:"POST",body:fd});
+    
 }
 
 function updateSpeed(){
