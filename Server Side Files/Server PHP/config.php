@@ -1,6 +1,3 @@
-
-
-
 <?php
 //Database Settings
 $servername = "localhost";
@@ -127,6 +124,13 @@ $customNavOptions = [
             "name" => "Decoding Settings",
             "path" => "magewelldecoder/?id={id}"
         ]
+    ],
+        "13" => [
+
+        [
+            "name" => "Test Generator Settings",
+            "path" => "index.php/?id={id}"
+        ]
     ]
 ];
 
@@ -236,7 +240,7 @@ function showloggedout() {
         <div class="error-box">
             <h1>Session Expired</h1>
             <p>Sorry, your session has expired. Please Login again.</p>
-            <a href="/<?php echo htmlspecialchars($redirectUrl); ?>" class="login-btn">Login</a>
+            <a href="/<?php echo $redirectUrl; ?>" class="login-btn">Login</a>
         </div>
     </body>
     </html>

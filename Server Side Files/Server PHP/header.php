@@ -281,7 +281,7 @@ body {
 </style>
 
 <script>
-
+$(function () {
 $('.dropdown-toggle').on('click', function (e) {
     e.preventDefault();
     e.stopPropagation();
@@ -291,6 +291,7 @@ $('.dropdown-toggle').on('click', function (e) {
     // Toggle manually
     $('.dropdown').not(parent).removeClass('open');
     parent.toggleClass('open');
+});
 });
 $('.dropdown-menu').on('click', function (e) {
     e.stopPropagation();
@@ -692,6 +693,16 @@ $result = $conn->query($query);
                   $name = $row['name'] ?? 'NULL';
                   ?>
                   <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/magewelldecoder/?id=<?php echo  $id;?>"><?php echo  $name;?></a></li>
+                  
+                <?php }}} ?>
+           <?php
+            if ($result = $conn->query($query)) {
+              while ($row = $result->fetch_assoc()) {
+                if ($row['pluginID'] == 13 && checkperm($row['id'])){
+                  $id = $row['id']; 
+                  $name = $row['name'] ?? 'NULL';
+                  ?>
+                  <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/testgen/?id=<?php echo  $id;?>"><?php echo  $name;?></a></li>
                   
                 <?php }}} ?>
           </ul> 
