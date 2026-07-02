@@ -28,7 +28,6 @@ $stmt->close();
 
 
 
-$TARGET = "10.244.0.76:8100";
 
 // ----------------------
 // PROXY EVERYTHING EXCEPT "/"

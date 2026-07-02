@@ -433,7 +433,7 @@ $result = $conn->query($query);
         <?php endif; ?>
 
         <!-- User Menu -->
-        <?php if($userPerm >= 1 && (!($_SESSION['UserEmail']  == "frontPanel"))): ?>
+        <?php if($userPerm >= 1 && (!isProtectedUser($_SESSION['UserEmail']))): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#"><?php echo $_SESSION['UserEmail']; ?><span class="caret"></span></a>
           <ul class="dropdown-menu">
@@ -593,6 +593,16 @@ $result = $conn->query($query);
                       <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/x32/bus.php?id=<?php echo $id;?>"><?php echo $name;?> Mix Buses</a></li>
                     </ul>
                   </li>
+                <?php }}} ?>
+            <?php
+            if ($result = $conn->query($query)) {
+              while ($row = $result->fetch_assoc()) {
+                if ($row['pluginID'] == 14 && checkperm($row['id'])){
+                  $id = $row['id']; 
+                  $name = $row['name'] ?? 'NULL';
+                  ?>
+                  <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/aquastreamsplayback/?id=<?php echo  $id;?>"><?php echo  $name;?></a></li>
+                  
                 <?php }}} ?>
           </ul> 
         </li>
@@ -771,12 +781,13 @@ $result = $conn->query($query);
         <?php endif; ?>
 
         <!-- User Menu -->
-        <?php if($userPerm >= 1 && (!($_SESSION['UserEmail']  == "frontPanel"))): ?>
+        
+       <?php if ($userPerm >= 1 && !isProtectedUser($_SESSION['UserEmail']) ): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#"><?php echo $_SESSION['UserEmail']; ?><span class="caret"></span></a>
           <ul class="dropdown-menu">
           
-         
+       
             <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/changepassword.php">Change Password</a></li>
            
              <!--<li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/about.php">About Iceburg</a></li>-->

@@ -7,7 +7,23 @@ $dbname = "iceburg";
 
 
 //Auto Login IP. Any ip in this array will automaticaly be loged in with the username frontPanel and password frontPanel. This is usefull for a kiok. 
-$localloginip = ["127.0.0.1", "10.176.71.113"];
+$localloginip = [
+    "127.0.0.1" => [
+        "username" => "frontPanel",
+        "password" => "frontPanel"
+    ],
+    "10.244.0.78" => [
+        "username" => "audio",
+        "password" => "audio"
+    ]
+];
+$protectedUsers = array_column($localloginip, 'username');
+
+
+function isProtectedUser($username) {
+    global $protectedUsers;
+    return in_array(strtolower($username), $protectedUsers, true);
+}
 
 
 //All options for coustom nav bar
@@ -129,7 +145,14 @@ $customNavOptions = [
 
         [
             "name" => "Test Generator Settings",
-            "path" => "index.php/?id={id}"
+            "path" => "testgen/?id={id}"
+        ]
+    ],
+        "14" => [
+
+        [
+            "name" => "Audio Playback",
+            "path" => "aquastreamsplayback/?id={id}"
         ]
     ]
 ];

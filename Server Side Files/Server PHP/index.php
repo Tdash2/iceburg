@@ -4,6 +4,9 @@ include "config.php";
 
 session_start();
 
+
+
+
 // Redirect if already logged in
 if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
     $redirect = $_GET['redirect'] ?? 'home.php';
@@ -63,55 +66,52 @@ if (filter_var(
     FILTER_VALIDATE_IP,
     FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6
 )) {
-    if (in_array($ip, $localloginip)) {
-    $username = "frontPanel";
-    $password = "frontPanel";
-    $redirect = $_POST["redirect"] ?? 'home.php';
+    if (isset($localloginip[$ip])) {
 
-    $ip = getClientIp();
-    $timestamp = date("Y-m-d H:i:s");
+        $username = $localloginip[$ip]['username'];
+        $password = $localloginip[$ip]['password'];
 
-    $user = verifyLogin($username, $password, $conn);
+        $redirect = $_POST["redirect"] ?? 'home.php';
 
-    if ($user['success']) {
-        session_regenerate_id(true);
-        $_SESSION['loggedin'] = true;
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_permissions'] = $user['permissions'];
+        $ip = getClientIp();
+        $timestamp = date("Y-m-d H:i:s");
 
-        // Log successful login
-        $details = [
-            'ip' => $ip,
-            'timestamp' => $timestamp,
-            'outcome' => 'success',
-            'username' => $username
-        ];
-        logAudit($conn, $user['id'], 'login', $details);
-        
-        
-     
+        $user = verifyLogin($username, $password, $conn);
 
-        header("Location: " . $redirect);
-        exit;
-    } else {
-        // Log failed login attempt (with user ID if username exists)
-        $details = [
-            'ip' => $ip,
-            'timestamp' => $timestamp,
-            'outcome' => 'failed',
-            'username' => $username
-        ];
-        logAudit($conn, $user['id'], 'login', $details);
+        if ($user['success']) {
+            session_regenerate_id(true);
+            $_SESSION['loggedin'] = true;
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_permissions'] = $user['permissions'];
 
-        echo "Invalid username or password";
+            $details = [
+                'ip' => $ip,
+                'timestamp' => $timestamp,
+                'outcome' => 'success',
+                'username' => $username
+            ];
+            logAudit($conn, $user['id'], 'login', $details);
+
+            header("Location: " . $redirect);
+            exit;
+        } else {
+            $details = [
+                'ip' => $ip,
+                'timestamp' => $timestamp,
+                'outcome' => 'failed',
+                'username' => $username
+            ];
+            logAudit($conn, $user['id'], 'login', $details);
+
+            echo "Invalid username or password";
+        }
     }
-}
 }
 
 
 
 // --- Handle Form Submission ---
-if ($_SERVER["REQUEST_METHOD"] == "POST" && !(strcasecmp($_POST["username"], "frontPanel") == 0)) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && !in_array(strtolower($_POST["username"]), array_map('strtolower', $protectedUsers)) ) {
     $username = $_POST["username"];
     $password = $_POST["password"];
     $redirect = $_POST["redirect"] ?? 'home.php';
@@ -155,7 +155,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !(strcasecmp($_POST["username"], "fr
     }
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "GET" && !($_GET["username"] == null && !(strcasecmp($_GET["username"], "frontPanel") == 0))) {
+if ( $_SERVER["REQUEST_METHOD"] == "GET" && !empty($_GET["username"]) && !in_array(strtolower($_GET["username"]), array_map('strtolower', $protectedUsers)) ) {
     $username = $_GET["username"];
     $password = $_GET["password"];
     echo $username;
