@@ -120,6 +120,7 @@ function userHasAnyPluginAccess(array $pluginIDs, array $devices): bool {
     return false;
 }
 
+
 // IMPORTANT: always close
 $stmt->close();
 
@@ -573,7 +574,7 @@ $result = $conn->query($query);
 <?php endif; ?>
 
         <!-- Audio Menu -->
-        <?php if(($userPerm >= 1 ) && userHasAnyPluginAccess([1], $devices) ): ?>
+        <?php if(($userPerm >= 1 ) && userHasAnyPluginAccess([1,14,15], $devices) ): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Audio <span class="caret"></span></a>
           <ul class="dropdown-menu">
@@ -698,7 +699,9 @@ $result = $conn->query($query);
         </li>
         <?php endif; ?>
         <!-- Encoders and cameras Menu -->
-        <?php if(($userPerm >= 1)&& userHasAnyPluginAccess([9], $devices) || userHasAnyPluginAccess([12], $devices) ): ?>
+        
+       
+        <?php if(($userPerm >= 1)&& userHasAnyPluginAccess([13,9,12], $devices) ): ?>
         <li class="dropdown" id="first-link">
           <a class="dropdown-toggle" data-toggle="dropdown" href="#">Cameras & Encoders <span class="caret"></span></a>
           <ul class="dropdown-menu">
