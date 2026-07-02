@@ -88,7 +88,8 @@ INSERT INTO `deviceplugin` (`id`, `pluginName`, `pluginFolder`) VALUES
 (11, 'AJA FS-4 / FS HDR', '/ajafs4/'),
 (12, 'Magewell Pro Convert Decoder', '/magewelldecoder/'),
 (13, 'Iceburg Test Genarator', '/testgen/'),
-(14, 'Aquastreams Playback', '/aquastreamsplayback/');
+(14, 'Aquastreams Playback', '/aquastreamsplayback/'),
+(15, 'Open Matrix', '/openmatrix/');
 
 
 -- --------------------------------------------------------

@@ -594,6 +594,23 @@ $result = $conn->query($query);
                     </ul>
                   </li>
                 <?php }}} ?>
+                            <?php
+            if ($result = $conn->query($query)) {
+              while ($row = $result->fetch_assoc()) {
+                if ($row['pluginID'] == 15 && checkperm($row['id'])){
+                  $id = $row['id']; 
+                  $name = $row['name'] ?? 'NULL';
+                  ?>
+                  <li class="dropdown-submenu">
+                    <a href="#"><i class="fa-solid fa-caret-left"></i></i> <?php echo $name;?></a>
+                    <ul class="dropdown-menu">
+                      
+                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/openmatrix/names.php?id=<?php echo $id;?>"><?php echo $name;?> Names</a></li>
+                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/openmatrix/index.php?id=<?php echo $id;?>"><?php echo $name;?> Crosspoints</a></li>
+                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/openmatrix/partylines.php?id=<?php echo $id;?>"><?php echo $name;?> Partylines</a></li>
+                    </ul>
+                  </li>
+                <?php }}} ?>
             <?php
             if ($result = $conn->query($query)) {
               while ($row = $result->fetch_assoc()) {

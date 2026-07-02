@@ -154,7 +154,23 @@ $customNavOptions = [
             "name" => "Audio Playback",
             "path" => "aquastreamsplayback/?id={id}"
         ]
+    ],
+        "15" => [
+
+        [
+            "name" => "Intercom Names",
+            "path" => "openmatrix/names.php?id={id}"
+        ],
+        [
+            "name" => "Intercom Crosspoints",
+            "path" => "openmatrix/?id={id}"
+        ],
+        [
+            "name" => "Intercom Partylines",
+            "path" => "openmatrix/partylines.php?id={id}"
+        ]
     ]
+    
 ];
 
 
