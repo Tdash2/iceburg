@@ -43,7 +43,7 @@ CREATE TABLE `Admin Users` (
 
 INSERT INTO `Admin Users` (`UserEmail`, `UserPassword`, `UserPermissions`, `id`, `allowedPlugins`, `useCoustomNav`, `NavElements`) VALUES
 ('admin', '$2y$10$aYyi/ztJI41GZD7s90rYLOenHCXJLW3CIWuar4LHa3mPJDASQMQLK', '5', 1, '[]', 0, '[]'),
-('frontPanel', '$2y$12$FFlvyfU3N.W0ssMZZ.er7OfLKr5JZtMbXMUa62mv82BycC7v0Hk0W', '5', 2, '[]', 0, '[]');
+('frontpanel', '$2y$12$Q4rzlb.jfW0ydfmLAMpADu0bsvk6MOEqgt7oYBUJ17oqJiVoBmarq', '5', 2, '[]', 0, '[]');
 
 -- --------------------------------------------------------
 

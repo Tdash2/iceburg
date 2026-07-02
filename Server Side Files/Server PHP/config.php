@@ -9,8 +9,8 @@ $dbname = "iceburg";
 //Auto Login IP. Any ip in this array will automaticaly be loged in with the username frontPanel and password frontPanel. This is usefull for a kiok. 
 $localloginip = [
     "127.0.0.1" => [
-        "username" => "frontPanel",
-        "password" => "frontPanel"
+        "username" => "frontpanel",
+        "password" => "frontpanel"
     ],
     "10.244.0.78" => [
         "username" => "audio",
