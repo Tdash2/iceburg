@@ -19,9 +19,20 @@ log.setLevel(logging.ERROR)
 
 
 FONT_PATH = "/usr/share/fonts/truetype/roboto/unhinted/RobotoCondensed-Bold.ttf"
-DECKLINK_DEVICE = "DeckLink 4K Extreme"
+DECKLINK_DEVICE = "DeckLink SDI"
 name = "Output 1"
 serverport = 8100
+
+
+
+BOX_PNG = Image.open("logo.png").convert("RGBA")
+
+
+new_height = 200
+ratio = new_height / BOX_PNG.height
+new_width = int(BOX_PNG.width * ratio)
+
+BOX_PNG = BOX_PNG.resize((new_width, new_height))
 
 
 # =========================================================
@@ -281,48 +292,111 @@ def graphics_loop():
 
     box = state
 
+    png_w = BOX_PNG.width
+    png_h = BOX_PNG.height
+
+    # Make sure these exist in state
+    box.setdefault("box_x", 200)
+    box.setdefault("box_y", 200)
+    box.setdefault("box_speed_x", 4)
+    box.setdefault("box_speed_y", 3)
+
     while True:
-        now = time.perf_counter()
 
         draw = ImageDraw.Draw(frame_write)
 
+        # Clear frame
         draw.rectangle((0, 0, WIDTH, HEIGHT), fill=(0, 0, 0, 0))
+
+        # Draw SMPTE bars
         draw_smpte_bars(draw, WIDTH, HEIGHT)
 
-        # motion
+        # -------------------------
+        # DVD LOGO MOVEMENT
+        # -------------------------
         box["box_x"] += box["box_speed_x"]
+        box["box_y"] += box["box_speed_y"]
 
-        if box["box_x"] <= 100 or box["box_x"] >= WIDTH - 300:
+        # Left / Right bounce
+        if box["box_x"] <= 0:
+            box["box_x"] = 0
             box["box_speed_x"] *= -1
-            
-            
+        elif box["box_x"] >= WIDTH - png_w:
+            box["box_x"] = WIDTH - png_w
+            box["box_speed_x"] *= -1
 
-        draw.rectangle((box["box_x"], 470, box["box_x"] + box["box_w"], 670),
-                       fill=(255, 255, 255, 255))
+        # Top / Bottom bounce
+        if box["box_y"] <= 0:
+            box["box_y"] = 0
+            box["box_speed_y"] *= -1
+        elif box["box_y"] >= HEIGHT - png_h:
+            box["box_y"] = HEIGHT - png_h
+            box["box_speed_y"] *= -1
 
-        draw_centered_box(draw, 200, time.strftime("%H:%M:%S"), font_big, WIDTH,10)
-        
-  
-        draw_centered_box(draw, 324, box["text1"], font_med, WIDTH,3)
-        draw_centered_box(draw, 400, box["text2"], font_med_small, WIDTH,3)
+        # Draw PNG (now fully dynamic position)
+
+
+        # Clock
+        draw_centered_box(
+            draw,
+            200,
+            time.strftime("%H:%M:%S"),
+            font_big,
+            WIDTH,
+            10
+        )
+
+        # Text
+        draw_centered_box(
+            draw,
+            324,
+            box["text1"],
+            font_med,
+            WIDTH,
+            3
+        )
+
+        draw_centered_box(
+            draw,
+            400,
+            box["text2"],
+            font_med_small,
+            WIDTH,
+            3
+        )
+        frame_write.paste(
+            BOX_PNG,
+            (int(box["box_x"]), int(box["box_y"])),
+            BOX_PNG
+        )
+
+        # Web UI address
         if (
             state.get("show_web_ui", True)
             or (time.time() - PROGRAM_START) < 20
         ):
-            draw_text_box(draw, (20, 20), IP_TEXT, font_small, 4)
+            draw_text_box(
+                draw,
+                (20, 20),
+                IP_TEXT,
+                font_small,
+                4
+            )
+            
 
-
-        # SWAP BUFFER (NO COPY)
+        # Swap buffers
         with frame_lock:
             frame_read = frame_write
             frame_write = frame_b if frame_write is frame_a else frame_a
 
+        # Send to ffmpeg
         if ffmpeg_process and ffmpeg_process.stdin:
             try:
                 ffmpeg_process.stdin.write(frame_read.tobytes())
             except:
                 pass
 
+        # Frame timing
         next_frame += frame_time
         sleep = next_frame - time.perf_counter()
 
@@ -330,7 +404,6 @@ def graphics_loop():
             time.sleep(sleep)
         else:
             next_frame = time.perf_counter()
-
 # =========================================================
 # PREVIEW WORKER (NO COPY)
 # =========================================================
