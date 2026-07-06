@@ -195,7 +195,7 @@ button, input, select, textarea {
 </head>
 <body>
 <div class="container">
-<h2>Videohub Input Lables</h2>
+<h2>Videohub Input Labels</h2>
 <p>Router: <strong><?php echo $VIDEHub_HOST; ?></strong></p>
 <button id="refresh" class="btn btn-info">Refresh</button>
 <button id="submitChanges"  class="btn btn-success">Submit Changes</button>

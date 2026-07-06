@@ -21,7 +21,7 @@ include "../header.php";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Router Panle</title>
+    <title>Virtual Router Panel</title>
 
     <style>
 body {
@@ -126,7 +126,7 @@ $userperms = $_SESSION['user_permissions'] ?? 0;
 if ($userperms > 2) {
     echo '<br>';
     echo '<center>';
-    echo '<a class="buttonGrean" href="editpanle.php?return=' . $deviceID . '">Add A New Virtual Panle</a>';
+    echo '<a class="buttonGrean" href="editpanle.php?return=' . $deviceID . '">Add A New Virtual Panel</a>';
     echo '</center>';
     echo '<br>';
 }
@@ -139,10 +139,10 @@ echo '<th>Name</th>';
 echo '<th>Device Type</th>';
 echo '<th>Device Status</th>';
 if ($userperms > 2) {
-    echo '<th>Edit Panle</th>';
+    echo '<th>Edit Panel</th>';
 }
 if ($userperms > 2) {
-    echo '<th>Delete Panle</th>';
+    echo '<th>Delete Panel</th>';
 }
 echo '</tr>';
 echo '</thead>';
@@ -170,7 +170,7 @@ if ($userperms < 3) {
 
     if ($userperms > 2) {
         echo '<td>
-                <a href="editpanle.php?id=' . $id .  '&return=' . $deviceID . '" class="buttonGrean">Edit Panle</a>
+                <a href="editpanle.php?id=' . $id .  '&return=' . $deviceID . '" class="buttonGrean">Edit Panel</a>
               </td>';
     }
     if ($userperms > 2) {

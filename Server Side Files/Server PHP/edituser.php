@@ -295,7 +295,7 @@ button { margin-top:10px; }
 </div>
 
 <div class="box">
-<h4>Custom Navagation Bar</h4>
+<h4>Custom Navigation Bar</h4>
 
 <label>
 <input type="checkbox" name="useCoustomNav1" value="1" <?= $useCoustomNav1 ? 'checked':'' ?>>
