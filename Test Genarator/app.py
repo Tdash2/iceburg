@@ -161,9 +161,19 @@ def start_ffmpeg():
     video = get_video_mode()
 
     audio_input = (
-        "aevalsrc=sin(2*PI*1000*t):sample_rate=48000:channel_layout=stereo"
-        if not state["muted"]
-        else "anullsrc=channel_layout=stereo:sample_rate=48000"
+      "aevalsrc="
+      "0.1*sin(2*PI*1000*t)|"
+      "0.056234*sin(2*PI*1000*t)|"
+      "0.031623*sin(2*PI*1000*t)|"
+      "0.017783*sin(2*PI*1000*t)|"
+      "0.010000*sin(2*PI*1000*t)|"
+      "0.005623*sin(2*PI*1000*t)|"
+      "0.003162*sin(2*PI*1000*t)|"
+      "0.001778*sin(2*PI*1000*t):"
+      "s=48000"
+      if not state["muted"]
+      else
+      "anullsrc=r=48000:cl=7.1"
     )
 
     # overlay graph
@@ -216,6 +226,8 @@ def start_ffmpeg():
         "-field_order", "tt" if video["interlace"] else "progressive",
 
         "-c:a", "pcm_s16le",
+        "-ac", "8",
+        "-ar", "48000",
         
 
         "-f", "decklink",
