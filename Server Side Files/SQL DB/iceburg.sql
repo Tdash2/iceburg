@@ -89,7 +89,8 @@ INSERT INTO `deviceplugin` (`id`, `pluginName`, `pluginFolder`) VALUES
 (12, 'Magewell Pro Convert Decoder', '/magewelldecoder/'),
 (13, 'Iceburg Test Generator', '/testgen/'),
 (14, 'Aquastreams Playback', '/aquastreamsplayback/'),
-(15, 'Open Matrix', '/openmatrix/');
+(15, 'Open Matrix', '/openmatrix/'),
+(16, 'BMD HyperDeck', '/hyperdeck/');
 
 
 -- --------------------------------------------------------

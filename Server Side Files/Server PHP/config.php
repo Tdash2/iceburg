@@ -169,6 +169,17 @@ $customNavOptions = [
             "name" => "Intercom Partylines",
             "path" => "openmatrix/partylines.php?id={id}"
         ]
+    ],
+        "16" => [
+
+        [
+            "name" => "Hyperdeck Record",
+            "path" => "hyperdeck/record.php?id={id}"
+        ],
+        [
+            "name" => "Hyperdeck Playback",
+            "path" => "hyperdeck/?id={id}"
+        ]
     ]
     
 ];

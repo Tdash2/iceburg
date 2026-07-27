@@ -460,7 +460,7 @@ $result = $conn->query($query);
 <li class="dropdown" id="first-link">
 
   <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-    Router <span class="caret"></span>
+    Routing <span class="caret"></span>
   </a>
 
   <ul class="dropdown-menu">
@@ -629,7 +629,7 @@ $result = $conn->query($query);
         <!-- Framesyncs Menu -->
         <?php if(($userPerm >= 1) && userHasAnyPluginAccess([3,10,11], $devices) ): ?>
         <li class="dropdown" id="first-link">
-          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Framesyncs <span class="caret"></span></a>
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Video Processing<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <?php
             if ($result = $conn->query($query)) {
@@ -683,7 +683,7 @@ $result = $conn->query($query);
                 <!-- Monitor Menu -->
         <?php if(($userPerm >= 1) && userHasAnyPluginAccess([6], $devices)): ?>
         <li class="dropdown" id="first-link">
-          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Monitors <span class="caret"></span></a>
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Monitoring <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <?php
             if ($result = $conn->query($query)) {
@@ -701,9 +701,9 @@ $result = $conn->query($query);
         <!-- Encoders and cameras Menu -->
         
        
-        <?php if(($userPerm >= 1)&& userHasAnyPluginAccess([13,9,12], $devices) ): ?>
+        <?php if(($userPerm >= 1)&& userHasAnyPluginAccess([13,9,12,16], $devices) ): ?>
         <li class="dropdown" id="first-link">
-          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Cameras & Encoders <span class="caret"></span></a>
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Video Sources & Destinations<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <?php
             if ($result = $conn->query($query)) {
@@ -735,9 +735,25 @@ $result = $conn->query($query);
                   <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/testgen/?id=<?php echo  $id;?>"><?php echo  $name;?></a></li>
                   
                 <?php }}} ?>
+                             <?php
+             if ($result = $conn->query($query)) {
+              while ($row = $result->fetch_assoc()) {
+                if ($row['pluginID'] == 16 && checkperm($row['id'])){
+                  $id = $row['id']; 
+                  $name = $row['name'] ?? 'NULL';
+                  ?>
+                  <li class="dropdown-submenu">
+                    <a href="#"><i class="fa-solid fa-caret-left"></i></i> <?php echo $name;?></a>
+                    <ul class="dropdown-menu">
+                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/hyperdeck/record.php?id=<?php echo $id;?>">Record Menu</a></li>
+                      <li><a href="Http://<?php echo $_SERVER['HTTP_HOST'];?>/hyperdeck/?id=<?php echo $id;?>">Playback Menu</a></li>
+                    </ul>
+                  </li>
+                <?php }}} ?>  
           </ul> 
         </li>
         <?php endif; ?>
+
         
         <?php if(($userPerm > 1) && userHasAnyPluginAccess([4,7], $devices)): ?>
         <li class="dropdown" id="first-link">
