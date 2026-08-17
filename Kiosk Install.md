@@ -56,7 +56,7 @@ if [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]]; then
 fi
 ```
 
-mkdir -p ~/.config/openbox
+mkdir -p ~/.config/openbox/
 nano ~/.config/openbox/autostart
 
 ```
