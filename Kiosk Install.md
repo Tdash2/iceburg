@@ -57,6 +57,7 @@ fi
 ```
 
 mkdir -p ~/.config/openbox/
+
 nano ~/.config/openbox/autostart
 
 ```
@@ -92,7 +93,7 @@ Upload /server Side Files/Server PHP/ Here
 
 sudo mkdir -p /etc/nginx/ssl
 
-sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \ -keyout /etc/nginx/ssl/iceburg.key \ -out /etc/nginx/ssl/iceburg.crt
+sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048  -keyout /etc/nginx/ssl/iceburg.key  -out /etc/nginx/ssl/iceburg.crt
 
 sudo nano /etc/nginx/sites-enabled/iceburg.config
 
