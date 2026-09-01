@@ -63,6 +63,107 @@ nano ~/.config/openbox/autostart
 ```
 ~/kiosk.sh &
 ```
+nano ~/.config/openbox/rc.xml
+```
+<?xml version="1.0" encoding="UTF-8"?>
+
+<openbox_config>
+  <keyboard>
+    <!-- Disable common escape shortcuts -->
+    <keybind key="A-F4">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F1">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F2">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F3">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F4">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F5">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F6">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F7">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F8">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F9">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F10">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F11">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+
+    <keybind key="C-A-F12">
+      <action name="Execute">
+        <command>true</command>
+      </action>
+    </keybind>
+  </keyboard>
+
+  <mouse>
+    <dragThreshold>8</dragThreshold>
+    <doubleClickTime>200</doubleClickTime>
+  </mouse>
+
+  <applications>
+    <application class="*">
+      <decor>no</decor>
+      <focus>yes</focus>
+      <maximized>true</maximized>
+    </application>
+  </applications>
+</openbox_config>
+```
+
 
 nano ~/.xinitrc
 
